@@ -3,17 +3,16 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <DxLib.h>
 #include <vector>
-#include "GameObject.h"
+#include "Vertex.h"
 namespace education {
-	class Model :public GameObject
+	class Model 
 	{
 	public:
 
 		~Model() {};
 		bool LoadModel(const char* path);
-		std::vector<VERTEX3D> GenerateVertices();
+		std::vector<Vertex> GenerateVertices();
 		void Draw();
 		Model(const char* path);
 
@@ -21,10 +20,10 @@ namespace education {
 		Assimp::Importer m_importer;
 
 
-		std::vector<VERTEX3D> vertices;
+		std::vector<Vertex> vertices;
 		std::vector<unsigned short> indices;
 
-		MATRIX modelmat;
+		DirectX::XMMATRIX modelmat;
 	};
 
 }
