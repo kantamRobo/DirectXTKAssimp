@@ -4,7 +4,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <vector>
-#include "Vertex.h"
+#include <VertexTypes.h>
 namespace education {
 	class Model 
 	{
@@ -12,7 +12,7 @@ namespace education {
 
 		~Model() {};
 		bool LoadModel(const char* path);
-		std::vector<Vertex> GenerateVertices();
+		std::vector<DirectX::VertexPositionNormalColorTexture> GenerateVertices();
 		void Draw();
 		Model(const char* path);
 
@@ -20,7 +20,7 @@ namespace education {
 		Assimp::Importer m_importer;
 
 
-		std::vector<Vertex> vertices;
+		std::vector<DirectX::VertexPositionNormalColorTexture> vertices;
 		std::vector<unsigned short> indices;
 
 		DirectX::XMMATRIX modelmat;

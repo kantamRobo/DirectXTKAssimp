@@ -19,7 +19,6 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="Model.h" />
-    <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
