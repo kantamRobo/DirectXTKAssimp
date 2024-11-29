@@ -14,6 +14,7 @@ namespace education {
 		~Model() {};
 		bool LoadModel(const char* path);
 		std::vector<DirectX::VertexPositionNormalColorTexture> GenerateVertices();
+		HRESULT CreateBuffer(DX::DeviceResources* deviceResources);
 		HRESULT CreateShaders(const DX::DeviceResources* deviceResources);
 		void CreateBuffers(const DX::DeviceResources* deviceResources);
 		void craetepipelineState(const DX::DeviceResources* deviceResources);

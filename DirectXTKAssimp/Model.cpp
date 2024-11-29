@@ -99,6 +99,32 @@ std::vector<DirectX::VertexPositionNormalColorTexture> education::Model::Generat
     return outvertices;
 }
 
+HRESULT education::Model::CreateBuffer(DX::DeviceResources* deviceResources)
+{
+    // 頂点バッファの作成
+    DX::ThrowIfFailed(
+        DirectX::CreateStaticBuffer(
+            deviceResources->GetD3DDevice(),
+            vertices.data(),
+            static_cast<int>(vertices.size()),
+            sizeof(DirectX::VertexPositionNormalColorTexture),
+            D3D11_BIND_VERTEX_BUFFER,
+            m_vertexBuffer.GetAddressOf()
+        )
+    );
+    // インデックスバッファの作成
+    DX::ThrowIfFailed(
+        DirectX::CreateStaticBuffer(
+            deviceResources->GetD3DDevice(),
+            indices.data(),
+            static_cast<int>(indices.size()),
+            sizeof(unsigned short),
+            D3D11_BIND_INDEX_BUFFER,
+            m_indexBuffer.GetAddressOf()
+        )
+    );
+
+}
 HRESULT education::Model::CreateShaders(const DX::DeviceResources* deviceResources)
 {
     //パイプラインステートの作成
