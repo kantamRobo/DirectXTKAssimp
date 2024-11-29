@@ -123,7 +123,7 @@ HRESULT education::Model::CreateBuffer(DX::DeviceResources* deviceResources)
             m_indexBuffer.GetAddressOf()
         )
     );
-
+    return S_OK;
 }
 HRESULT education::Model::CreateShaders(const DX::DeviceResources* deviceResources)
 {
@@ -173,6 +173,8 @@ auto hr =D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "VS", "vs_5_
 	{
 		return hr;
 	}
+
+    return hr;
 }
 
 void education::Model::CreateBuffers(const DX::DeviceResources* deviceResources)
