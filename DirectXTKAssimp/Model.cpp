@@ -15,6 +15,8 @@
 #pragma comment(lib, "d3dcompiler.lib")
 
 
+//TODO:コンストラクタでモデルロード・バッファ作成・シェーダー作成を行う
+
 bool education::Model::LoadModel(const char* path)
 {
 
