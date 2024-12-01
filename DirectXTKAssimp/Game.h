@@ -6,7 +6,7 @@
 
 #include "DeviceResources.h"
 #include "StepTimer.h"
-
+#include "Model.h"
 
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
@@ -46,7 +46,7 @@ public:
     void GetDefaultSize( int& width, int& height ) const noexcept;
 
 private:
-
+    std::unique_ptr<education::Model> model;
     void Update(DX::StepTimer const& timer);
     void Render();
 

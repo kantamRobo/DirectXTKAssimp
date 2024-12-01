@@ -17,6 +17,33 @@
 
 //TODO:コンストラクタでモデルロード・バッファ作成・シェーダー作成を行う
 
+
+
+education::Model::Model(DX::DeviceResources* deviceresources,const char* path)
+{
+    if (!LoadModel(path))
+    {
+		std::abort();
+    }
+    
+/*
+追加分
+*/
+    if (FAILED(CreateBuffer(deviceresources)))
+    {
+		std::abort();
+    }
+	if(FAILED(CreateShaders(deviceresources)))
+	{
+		std::abort();
+	}
+	if(FAILED(craetepipelineState(deviceresources)))
+	{
+		std::abort();
+	}
+
+}
+
 bool education::Model::LoadModel(const char* path)
 {
 
@@ -24,7 +51,8 @@ bool education::Model::LoadModel(const char* path)
     m_scene = m_importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_ConvertToLeftHanded | aiProcess_GenNormals);
     if (!m_scene || !m_scene->mRootNode)
     {
-        std::cout << "ERROR::ASSIMP::" << m_importer.GetErrorString() << std::endl;
+		auto error = m_importer.GetErrorString();
+       
         return false;
     }
     vertices = GenerateVertices();
@@ -136,9 +164,11 @@ HRESULT education::Model::CreateShaders(const DX::DeviceResources* deviceResourc
 
     // 頂点シェーダーのコンパイル
     Microsoft::WRL::ComPtr<ID3DBlob> pVSBlob;
-auto hr =D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "VS", "vs_5_0", 0, 0, pVSBlob.GetAddressOf(), nullptr);
+    Microsoft::WRL::ComPtr<ID3DBlob> perrrorBlob;
+auto hr =D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_5_0", 0, 0, pVSBlob.GetAddressOf(), perrrorBlob.GetAddressOf());
 	if (FAILED(hr))
 	{
+		OutputDebugStringA(reinterpret_cast<const char*>(perrrorBlob->GetBufferPointer()));
 		return hr;
 	}
 
@@ -146,21 +176,28 @@ auto hr =D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "VS", "vs_5_
 	hr = device->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, m_vertexShader.GetAddressOf());
 	if (FAILED(hr))
 	{
+        OutputDebugStringA(reinterpret_cast<const char*>(perrrorBlob->GetBufferPointer()));
 		return hr;
 	}
 
 
     // ピクセルシェーダーのコンパイル
     Microsoft::WRL::ComPtr<ID3DBlob> pPSBlob;
-    hr = D3DCompileFromFile(L"PixelShader.hlsl", nullptr, nullptr, "PS", "ps_5_0", 0, 0, pPSBlob.GetAddressOf(), nullptr);
+    hr = D3DCompileFromFile(L"PixelShader.hlsl", nullptr, nullptr, "main", "ps_5_0", 0, 0, pPSBlob.GetAddressOf(), nullptr);
 
     if (FAILED(hr))
     {
+        OutputDebugStringA(reinterpret_cast<const char*>(perrrorBlob->GetBufferPointer()));
         return hr;
     }
 
     //ピクセルシェーダーの作成
     hr = device->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, m_pixelShader.GetAddressOf());
+	if (FAILED(hr))
+	{
+        OutputDebugStringA(reinterpret_cast<const char*>(perrrorBlob->GetBufferPointer()));
+		return hr;
+	}
 	// 入力レイアウトの作成
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
@@ -170,11 +207,14 @@ auto hr =D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "VS", "vs_5_
 	};
 	UINT numElements = ARRAYSIZE(layout);
 
-	hr = device->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), m_spriteInputLayout.GetAddressOf());
+	hr = device->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), m_modelInputLayout.GetAddressOf());
 	if (FAILED(hr))
 	{
 		return hr;
 	}
+
+	
+
 
     return hr;
 }
@@ -188,7 +228,7 @@ void education::Model::CreateBuffers(const DX::DeviceResources* deviceResources)
 }
 
 
-void education::Model::craetepipelineState(const DX::DeviceResources* deviceResources)
+HRESULT education::Model::craetepipelineState(const DX::DeviceResources* deviceResources)
 {
 
     D3D11_RASTERIZER_DESC rasterizerDesc = {};
@@ -202,7 +242,15 @@ void education::Model::craetepipelineState(const DX::DeviceResources* deviceReso
     rasterizerDesc.MultisampleEnable = false;
     rasterizerDesc.AntialiasedLineEnable = false;
 
+	auto hr =deviceResources->GetD3DDevice()->CreateRasterizerState(&rasterizerDesc, m_rasterizerState.GetAddressOf());
 
+
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+    return hr;
 }
 
 
@@ -215,21 +263,18 @@ void education::Model::Draw(const DX::DeviceResources* DR) {
     }
     auto device = DR->GetD3DDevice();
     UINT size = sizeof(DirectX::VertexPositionNormalColorTexture);
+	auto offset = 0u;
   auto context = DR->GetD3DDeviceContext();
-  context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(),&size, 0);
+  context->IASetInputLayout(m_modelInputLayout.Get());
+  context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+ 
+  context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(),&size, &offset);
   context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
   context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
   context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
-  
   context->DrawIndexedInstanced(indices.size(), 1, 0, 0, 0);
 }
 
 
 
 
-
-education::Model::Model(const char* path)
-{
-    assert(LoadModel(path), "ロードに失敗");
-    vertices = GenerateVertices();
-}

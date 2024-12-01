@@ -12,14 +12,15 @@ namespace education {
 	public:
 
 		~Model() {};
+		Model(DX::DeviceResources* deviceresources, const char* path);
 		bool LoadModel(const char* path);
 		std::vector<DirectX::VertexPositionNormalColorTexture> GenerateVertices();
 		HRESULT CreateBuffer(DX::DeviceResources* deviceResources);
 		HRESULT CreateShaders(const DX::DeviceResources* deviceResources);
 		void CreateBuffers(const DX::DeviceResources* deviceResources);
-		void craetepipelineState(const DX::DeviceResources* deviceResources);
+		HRESULT craetepipelineState(const DX::DeviceResources* deviceResources);
 		void Draw(const DX::DeviceResources* DR );
-		Model(const char* path);
+		
 
 		const aiScene* m_scene;
 		Assimp::Importer m_importer;
@@ -36,7 +37,8 @@ namespace education {
 		//シェーダーの作成
 		Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShader;
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
-		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_spriteInputLayout = nullptr;// 入力レイアウト
+		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_modelInputLayout = nullptr;// 入力レイアウト
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerState;
 	};
 
 }

@@ -4,7 +4,7 @@
 
 #include "pch.h"
 #include "Game.h"
-
+#include "Model.h"
 extern void ExitGame() noexcept;
 
 using namespace DirectX;
@@ -78,7 +78,7 @@ void Game::Render()
 
     // TODO: Add your rendering code here.
     context;
-
+	model->Draw(m_deviceResources.get());
     m_deviceResources->PIXEndEvent();
 
     // Show the new frame.
@@ -168,7 +168,10 @@ void Game::CreateDeviceDependentResources()
     auto device = m_deviceResources->GetD3DDevice();
 
     // TODO: Initialize device dependent objects here (independent of window size).
+	model = std::make_unique<education::Model>(m_deviceResources.get(), "C:\\Users\\hatte\\source\\repos\\DirectXTKAssimp\\DirectXTKAssimp\\–³‘è.obj");
     device;
+
+
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
