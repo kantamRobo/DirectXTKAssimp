@@ -12,6 +12,7 @@
 #include <functional>
 #include "Model.h"
 
+
 #pragma comment(lib, "d3dcompiler.lib")
 
 
@@ -219,12 +220,35 @@ auto hr =D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_
     return hr;
 }
 
-void education::Model::CreateBuffers(const DX::DeviceResources* deviceResources)
+void education::Model::CreateBuffers(const DX::DeviceResources* deviceResources, Game* game)
 {
     //頂点バッファの作成
     DirectX::CreateStaticBuffer(deviceResources->GetD3DDevice(), vertices.data(), vertices.size(), sizeof(DirectX::VertexPositionNormalColorTexture), D3D11_BIND_VERTEX_BUFFER, m_vertexBuffer.GetAddressOf());
     //インデックスバッファの作成
     DirectX::CreateStaticBuffer(deviceResources->GetD3DDevice(), indices.data(), indices.size(), sizeof(UINT), D3D11_BIND_INDEX_BUFFER, m_indexBuffer.GetAddressOf());
+    //定数バッファの作成
+    m_constantBuffer.Create(deviceResources->GetD3DDevice());
+
+    DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+
+    DirectX::XMVECTOR eye = DirectX::XMVectorSet(2.0f, 2.0f, -2.0f, 0.0f);
+    DirectX::XMVECTOR focus = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+    DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixLookAtLH(eye, focus, up);
+
+    float    fov = DirectX::XMConvertToRadians(45.0f);
+    float    aspect = game->m_height / game->m_width;
+    float    nearZ = 0.1f;
+    float    farZ = 100.0f;
+    DirectX::XMMATRIX projMatrix = DirectX::XMMatrixPerspectiveFovLH(fov, aspect, nearZ, farZ);
+
+    SceneCB cb;
+    XMStoreFloat4x4(&cb.world, XMMatrixTranspose(worldMatrix));
+    XMStoreFloat4x4(&cb.view, XMMatrixTranspose(viewMatrix));
+    XMStoreFloat4x4(&cb.projection, XMMatrixTranspose(projMatrix));
+
+    m_constantBuffer.SetData(deviceResources->GetD3DDeviceContext(), cb);
+
 }
 
 
@@ -258,6 +282,10 @@ HRESULT education::Model::craetepipelineState(const DX::DeviceResources* deviceR
 
 
 void education::Model::Draw(const DX::DeviceResources* DR) {
+   
+
+   
+    
     if (vertices.empty() || indices.empty()) {
         return;
     }
@@ -267,7 +295,10 @@ void education::Model::Draw(const DX::DeviceResources* DR) {
   auto context = DR->GetD3DDeviceContext();
   context->IASetInputLayout(m_modelInputLayout.Get());
   context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
- 
+  auto buffer = m_constantBuffer.GetBuffer();
+
+  context->VSSetConstantBuffers(0, 1, &buffer);
+  context->PSSetConstantBuffers(0, 1, &buffer);
   context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(),&size, &offset);
   context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
   context->VSSetShader(m_vertexShader.Get(), nullptr, 0);

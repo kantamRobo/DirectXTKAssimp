@@ -6,6 +6,8 @@
 #include <vector>
 #include <VertexTypes.h>
 #include <DeviceResources.h>
+#include <Game.h>
+#include "ConstantBuffer.h"
 namespace education {
 	class Model 
 	{
@@ -17,9 +19,14 @@ namespace education {
 		std::vector<DirectX::VertexPositionNormalColorTexture> GenerateVertices();
 		HRESULT CreateBuffer(DX::DeviceResources* deviceResources);
 		HRESULT CreateShaders(const DX::DeviceResources* deviceResources);
-		void CreateBuffers(const DX::DeviceResources* deviceResources);
+		void CreateBuffers(const DX::DeviceResources* deviceResources, Game* game);
+		
 		HRESULT craetepipelineState(const DX::DeviceResources* deviceResources);
-		void Draw(const DX::DeviceResources* DR );
+		void Draw(const DX::DeviceResources* DR);
+		
+	
+		
+		
 		
 
 		const aiScene* m_scene;
@@ -32,8 +39,8 @@ namespace education {
 
 		std::vector<DirectX::VertexPositionNormalColorTexture> vertices;
 		std::vector<unsigned short> indices;
-
-		DirectX::XMMATRIX modelmat;
+		DirectX::ConstantBuffer<SceneCB> m_constantBuffer;
+		
 		//シェーダーの作成
 		Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShader;
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;

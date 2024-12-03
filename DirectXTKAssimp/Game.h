@@ -44,7 +44,13 @@ public:
 
     // Properties
     void GetDefaultSize( int& width, int& height ) const noexcept;
-
+     int m_width;
+     int m_height;
+    void SetViewPort(int width, int height)
+    {
+        m_width = width;
+        m_height = height;
+    }
 private:
     std::unique_ptr<education::Model> model;
     void Update(DX::StepTimer const& timer);
