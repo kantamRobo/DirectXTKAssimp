@@ -5,7 +5,13 @@ struct VS_INPUT
     float3 normal : NORMAL;
     float2 tex : TEXCOORD0;
 };
-
+ 
+cbuffer ConstantBuffer
+{
+    float4x4 World;         //ワールド変換行列
+    float4x4 View;          //ビュー変換行列
+    float4x4 Projection;    //透視射影変換行列
+}
 struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
