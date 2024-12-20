@@ -9,6 +9,7 @@
 #include <cassert>
 #include <d3dcompiler.h>
 #include <algorithm>
+
 #include <functional>
 #include "Model.h"
 
@@ -20,7 +21,7 @@
 
 
 
-education::Model::Model(DX::DeviceResources* deviceresources,const char* path)
+education::Model::Model(DX::DeviceResources* deviceresources,const char* path,int width,int height)
 {
     if (!LoadModel(path))
     {
@@ -30,7 +31,7 @@ education::Model::Model(DX::DeviceResources* deviceresources,const char* path)
 /*
 追加分
 */
-    if (FAILED(CreateBuffer(deviceresources)))
+    if (FAILED(CreateBuffers(deviceresources,width,height)))
     {
 		std::abort();
     }
@@ -130,32 +131,6 @@ std::vector<DirectX::VertexPositionNormalColorTexture> education::Model::Generat
     return outvertices;
 }
 
-HRESULT education::Model::CreateBuffer(DX::DeviceResources* deviceResources)
-{
-    // 頂点バッファの作成
-    DX::ThrowIfFailed(
-        DirectX::CreateStaticBuffer(
-            deviceResources->GetD3DDevice(),
-            vertices.data(),
-            static_cast<int>(vertices.size()),
-            sizeof(DirectX::VertexPositionNormalColorTexture),
-            D3D11_BIND_VERTEX_BUFFER,
-            m_vertexBuffer.GetAddressOf()
-        )
-    );
-    // インデックスバッファの作成
-    DX::ThrowIfFailed(
-        DirectX::CreateStaticBuffer(
-            deviceResources->GetD3DDevice(),
-            indices.data(),
-            static_cast<int>(indices.size()),
-            sizeof(unsigned short),
-            D3D11_BIND_INDEX_BUFFER,
-            m_indexBuffer.GetAddressOf()
-        )
-    );
-    return S_OK;
-}
 HRESULT education::Model::CreateShaders(const DX::DeviceResources* deviceResources)
 {
     //パイプラインステートの作成
@@ -220,7 +195,7 @@ auto hr =D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_
     return hr;
 }
 
-void education::Model::CreateBuffers(const DX::DeviceResources* deviceResources, Game* game)
+HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResources, int width, int height)
 {
     //頂点バッファの作成
     DirectX::CreateStaticBuffer(deviceResources->GetD3DDevice(), vertices.data(), vertices.size(), sizeof(DirectX::VertexPositionNormalColorTexture), D3D11_BIND_VERTEX_BUFFER, m_vertexBuffer.GetAddressOf());
@@ -237,7 +212,7 @@ void education::Model::CreateBuffers(const DX::DeviceResources* deviceResources,
     DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixLookAtLH(eye, focus, up);
 
     float    fov = DirectX::XMConvertToRadians(45.0f);
-    float    aspect = game->m_height / game->m_width;
+    float    aspect = height / width;
     float    nearZ = 0.1f;
     float    farZ = 100.0f;
     DirectX::XMMATRIX projMatrix = DirectX::XMMatrixPerspectiveFovLH(fov, aspect, nearZ, farZ);
@@ -248,7 +223,7 @@ void education::Model::CreateBuffers(const DX::DeviceResources* deviceResources,
     XMStoreFloat4x4(&cb.projection, XMMatrixTranspose(projMatrix));
 
     m_constantBuffer.SetData(deviceResources->GetD3DDeviceContext(), cb);
-
+    return S_OK;
 }
 
 

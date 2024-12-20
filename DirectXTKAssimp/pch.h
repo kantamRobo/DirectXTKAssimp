@@ -55,7 +55,10 @@
 #include <dxgidebug.h>
 #endif
 
+#include <VertexTypes.h>
+#include <DeviceResources.h>
 
+#include "ConstantBuffer.h"
 #include "BufferHelpers.h"
 #include "CommonStates.h"
 #include "DDSTextureLoader.h"
@@ -73,8 +76,7 @@
 #include "SimpleMath.h"
 #include "SpriteBatch.h"
 #include "SpriteFont.h"
-#include "VertexTypes.h"
-#include "WICTextureLoader.h"
+
 
 namespace DX
 {

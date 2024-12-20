@@ -1,25 +1,25 @@
 #pragma once
-#pragma once
+#include "pch.h"
+
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <vector>
-#include <VertexTypes.h>
-#include <DeviceResources.h>
-#include <Game.h>
-#include "ConstantBuffer.h"
+
 namespace education {
 	class Model 
 	{
 	public:
 
 		~Model() {};
-		Model(DX::DeviceResources* deviceresources, const char* path);
+		
+		Model(DX::DeviceResources* deviceresources, const char* path, int width, int height);
 		bool LoadModel(const char* path);
 		std::vector<DirectX::VertexPositionNormalColorTexture> GenerateVertices();
-		HRESULT CreateBuffer(DX::DeviceResources* deviceResources);
+		
 		HRESULT CreateShaders(const DX::DeviceResources* deviceResources);
-		void CreateBuffers(const DX::DeviceResources* deviceResources, Game* game);
+		HRESULT CreateBuffers(const DX::DeviceResources* deviceResources, int width, int height);
+		
 		
 		HRESULT craetepipelineState(const DX::DeviceResources* deviceResources);
 		void Draw(const DX::DeviceResources* DR);
