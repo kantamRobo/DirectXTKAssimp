@@ -54,7 +54,7 @@ bool education::Model::LoadModel(const char* path)
     if (!m_scene || !m_scene->mRootNode)
     {
 		auto error = m_importer.GetErrorString();
-       
+		OutputDebugStringA(error);
         return false;
     }
     vertices = GenerateVertices();
@@ -230,16 +230,18 @@ HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResourc
 HRESULT education::Model::craetepipelineState(const DX::DeviceResources* deviceResources)
 {
 
-    D3D11_RASTERIZER_DESC rasterizerDesc = {};
-    rasterizerDesc.FillMode = D3D11_FILL_SOLID;
-    rasterizerDesc.CullMode = D3D11_CULL_NONE;
-
-    // ’ˆÓ
-    rasterizerDesc.FrontCounterClockwise = true;
-    rasterizerDesc.ScissorEnable = false;
-    rasterizerDesc.DepthClipEnable = true;
-    rasterizerDesc.MultisampleEnable = false;
+    D3D11_RASTERIZER_DESC rasterizerDesc;
     rasterizerDesc.AntialiasedLineEnable = false;
+    rasterizerDesc.CullMode = D3D11_CULL_BACK;
+    rasterizerDesc.DepthBias = 0;
+    rasterizerDesc.DepthBiasClamp = 0.0f;
+    rasterizerDesc.DepthClipEnable = true;
+    rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+    rasterizerDesc.FrontCounterClockwise = false;
+    rasterizerDesc.MultisampleEnable = false;
+    rasterizerDesc.ScissorEnable = false;
+    rasterizerDesc.SlopeScaledDepthBias = 0.0f;
+
 
 	auto hr =deviceResources->GetD3DDevice()->CreateRasterizerState(&rasterizerDesc, m_rasterizerState.GetAddressOf());
 
@@ -257,29 +259,30 @@ HRESULT education::Model::craetepipelineState(const DX::DeviceResources* deviceR
 
 
 void education::Model::Draw(const DX::DeviceResources* DR) {
-   
-
-   
-    
     if (vertices.empty() || indices.empty()) {
+        OutputDebugStringA("Vertex or index buffer is empty.\n");
         return;
     }
-    auto device = DR->GetD3DDevice();
-    UINT size = sizeof(DirectX::VertexPositionNormalColorTexture);
-	auto offset = 0u;
-  auto context = DR->GetD3DDeviceContext();
-  context->IASetInputLayout(m_modelInputLayout.Get());
-  context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-  auto buffer = m_constantBuffer.GetBuffer();
 
-  context->VSSetConstantBuffers(0, 1, &buffer);
-  context->PSSetConstantBuffers(0, 1, &buffer);
-  context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(),&size, &offset);
-  context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-  context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
-  context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
-  context->DrawIndexedInstanced(indices.size(), 1, 0, 0, 0);
+    auto context = DR->GetD3DDeviceContext();
+    context->IASetInputLayout(m_modelInputLayout.Get());
+    context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+
+    UINT size = sizeof(DirectX::VertexPositionNormalColorTexture);
+    UINT offset = 0;
+    context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &size, &offset);
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    auto buffer = m_constantBuffer.GetBuffer();
+    context->VSSetConstantBuffers(0, 1, &buffer);
+    context->PSSetConstantBuffers(0, 1, &buffer);
+
+    context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
+    context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
+
+    context->DrawIndexedInstanced(static_cast<UINT>(indices.size()), 1, 0, 0, 0);
 }
+
 
 
 
