@@ -143,17 +143,16 @@ void education::Model::GenerateBones()
                 aiBone* bone = mesh->mBones[boneIndex];
                 std::string boneName = bone->mName.C_Str();
 
-                // ボーンのオフセット行列を保存
+               
                 aiMatrix4x4 offsetMatrix = bone->mOffsetMatrix;
 
-                // ボーンが影響を与える頂点とウェイトを保存
+               
                 for (unsigned int weightIndex = 0; weightIndex < bone->mNumWeights; ++weightIndex) {
                     aiVertexWeight weight = bone->mWeights[weightIndex];
                     unsigned int vertexId = weight.mVertexId;
                     float weightValue = weight.mWeight;
 
-                    // 頂点ごとのウェイト情報を保存
-                    // カスタムデータ構造に格納する
+                   
                 }
             }
         }
