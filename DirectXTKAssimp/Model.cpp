@@ -170,6 +170,8 @@ void education::Model::GenerateBones()
 
 					m_bone.weight.mVertexId = l_aibone->mWeights->mVertexId;
 					m_bone.weight.mWeight = l_aibone->mWeights->mWeight;
+
+                    
                 }
             }
         }
