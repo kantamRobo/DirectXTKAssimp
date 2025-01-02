@@ -5,7 +5,13 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <vector>
+struct bone
+{
+	std::string name;
+	DirectX::XMFLOAT4X4 offset;
+	aiVertexWeight weight;
 
+};
 namespace education {
 	class Model 
 	{
@@ -48,10 +54,7 @@ namespace education {
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
 		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_modelInputLayout = nullptr;// 入力レイアウト
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerState;
+		bone m_bone;
 	};
 
 }
-
-// Zバッファを有効化
-// Zバッファへの書き込みを有効化
-// バックカリングを無効化

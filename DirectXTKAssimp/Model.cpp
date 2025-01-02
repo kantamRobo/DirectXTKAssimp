@@ -140,19 +140,36 @@ void education::Model::GenerateBones()
         aiMesh* mesh = m_scene->mMeshes[meshIndex];
         if (mesh->HasBones()) {
             for (unsigned int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
-                aiBone* bone = mesh->mBones[boneIndex];
-                std::string boneName = bone->mName.C_Str();
+                aiBone* l_aibone = mesh->mBones[boneIndex];
+                std::string boneName = l_aibone->mName.C_Str();
 
                
-                aiMatrix4x4 offsetMatrix = bone->mOffsetMatrix;
+                m_bone.offset._11 = l_aibone->mOffsetMatrix.a1;
+				m_bone.offset._12 = l_aibone->mOffsetMatrix.a2;
+				m_bone.offset._13 = l_aibone->mOffsetMatrix.a3;
+				m_bone.offset._14 = l_aibone->mOffsetMatrix.a4;
+                
+				m_bone.offset._21 = l_aibone->mOffsetMatrix.b1;
+				m_bone.offset._22 = l_aibone->mOffsetMatrix.b2;
+				m_bone.offset._23 = l_aibone->mOffsetMatrix.b3;
+				m_bone.offset._24 = l_aibone->mOffsetMatrix.b4;
 
-               
-                for (unsigned int weightIndex = 0; weightIndex < bone->mNumWeights; ++weightIndex) {
-                    aiVertexWeight weight = bone->mWeights[weightIndex];
-                    unsigned int vertexId = weight.mVertexId;
-                    float weightValue = weight.mWeight;
+				m_bone.offset._31 = l_aibone->mOffsetMatrix.c1;
+				m_bone.offset._32 = l_aibone->mOffsetMatrix.c2;
+				m_bone.offset._33 = l_aibone->mOffsetMatrix.c3;
+				m_bone.offset._34 = l_aibone->mOffsetMatrix.c4;
 
-                   
+				m_bone.offset._41 = l_aibone->mOffsetMatrix.d1;
+				m_bone.offset._42 = l_aibone->mOffsetMatrix.d2;
+				m_bone.offset._43 = l_aibone->mOffsetMatrix.d3;
+				m_bone.offset._44 = l_aibone->mOffsetMatrix.d4;
+
+
+                for (unsigned int weightIndex = 0; weightIndex < l_aibone->mNumWeights; ++weightIndex) {
+                    m_bone.weight = l_aibone->mWeights[weightIndex];
+
+					m_bone.weight.mVertexId = l_aibone->mWeights->mVertexId;
+					m_bone.weight.mWeight = l_aibone->mWeights->mWeight;
                 }
             }
         }
