@@ -231,6 +231,9 @@ auto hr =D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "BLENDWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        { "BLENDINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        
 	};
 	UINT numElements = ARRAYSIZE(layout);
 
@@ -299,9 +302,17 @@ HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResourc
     // Create Constant Buffer
     m_constantBuffer.Create(device);
 
+	m_boneBuffer.Create(device);
+
+    //ボーンの座標変換
+	m_bone.offset = DirectX::XMFLOAT4X4(1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f);
+
     // Set up Matrices
     DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
-    DirectX::XMVECTOR eye = DirectX::XMVectorSet(2.0f, 2.0f, -2.0f, 0.0f);
+    DirectX::XMVECTOR eye = DirectX::XMVectorSet(2.0f, 2.0f, -10.0f, 0.0f);
     DirectX::XMVECTOR focus = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
     DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
     DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixLookAtLH(eye, focus, up);
@@ -318,7 +329,9 @@ HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResourc
     XMStoreFloat4x4(&cb.view, XMMatrixTranspose(viewMatrix));
     XMStoreFloat4x4(&cb.projection, XMMatrixTranspose(projMatrix));
     m_constantBuffer.SetData(deviceResources->GetD3DDeviceContext(), cb);
+	m_boneBuffer.SetData(deviceResources->GetD3DDeviceContext(), m_bone);
 
+    
     // Map Vertex Buffer for Updates
     auto context = deviceResources->GetD3DDeviceContext();
     D3D11_MAPPED_SUBRESOURCE mappedResource = {};
@@ -390,8 +403,11 @@ void education::Model::Draw(const DX::DeviceResources* deviceResources) {
 
     // 定数バッファの設定
     auto constantBuffer = m_constantBuffer.GetBuffer();
+	auto boneBuffer = m_boneBuffer.GetBuffer();
     context->VSSetConstantBuffers(0, 1, &constantBuffer);
     context->PSSetConstantBuffers(0, 1, &constantBuffer);
+	context->VSSetConstantBuffers(1, 1, &boneBuffer);
+	context->PSSetConstantBuffers(1, 1, &boneBuffer);
 
     // シェーダー設定
     context->VSSetShader(m_vertexShader.Get(), nullptr, 0);

@@ -5,7 +5,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <vector>
-struct bone
+struct Bone
 {
 	std::string name;
 	DirectX::XMFLOAT4X4 offset;
@@ -48,13 +48,13 @@ namespace education {
 		std::vector<DirectX::VertexPositionNormalColorTexture> vertices;
 		std::vector<unsigned short> indices;
 		DirectX::ConstantBuffer<SceneCB> m_constantBuffer;
-		
+		DirectX::ConstantBuffer<Bone> m_boneBuffer;
 		//シェーダーの作成
 		Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShader;
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
 		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_modelInputLayout = nullptr;// 入力レイアウト
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerState;
-		bone m_bone;
+		Bone m_bone;
 	};
 
 }
