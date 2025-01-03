@@ -3,8 +3,8 @@ struct VS_INPUT
     float4 pos : POSITION;       // 頂点位置
     float3 normal : NORMAL;      // 法線
     float2 tex : TEXCOORD0;      // テクスチャ座標
-    float4 boneWeights : BLENDWEIGHT; // ボーンのウェイト
-    uint4 boneIndices : BLENDINDICES; // ボーンのインデックス
+   // float4 boneWeights : BLENDWEIGHT; // ボーンのウェイト
+   // uint4 boneIndices : BLENDINDICES; // ボーンのインデックス
 };
 
 cbuffer ConstantBuffer
@@ -29,7 +29,7 @@ struct VS_OUTPUT
 VS_OUTPUT main(VS_INPUT input)
 {
     VS_OUTPUT output;
-
+    /*
     // スキニング計算
     float4 skinnedPosition = float4(0.0, 0.0, 0.0, 0.0);
     float3 skinnedNormal = float3(0.0, 0.0, 0.0);
@@ -42,15 +42,15 @@ VS_OUTPUT main(VS_INPUT input)
             skinnedNormal += mul(float4(input.normal, 0.0f), boneTransform).xyz * input.boneWeights[i];
         }
     }
-
+    */
     // ワールド変換、ビュー変換、プロジェクション変換を適用
-    float4 worldPosition = mul(skinnedPosition, World);
+    float4 worldPosition = mul(input.pos, World);
     float4 viewPosition = mul(worldPosition, View);
     output.pos = mul(viewPosition, Projection);
 
     // 法線をワールド座標系に変換
-    output.normal = normalize(mul(float4(skinnedNormal, 0.0f), World).xyz);
-
+    //output.normal = normalize(mul(float4(skinnedNormal, 0.0f), World).xyz);
+	output.normal = normalize(mul(float4(input.normal, 0.0f), World).xyz);
     // テクスチャ座標はそのまま出力
     output.tex = input.tex;
 
