@@ -17,7 +17,6 @@
 #pragma comment(lib, "d3dcompiler.lib")
 
 
-//TODO:コンストラクタでモデルロード・バッファ作成・シェーダー作成を行う
 
 
 
@@ -62,10 +61,7 @@ bool education::Model::LoadModel(const char* path)
     float scaleFactor = 10.0f;
 
 
-    for (int i = 0; i < vertices.size(); i++)
-    {
-        //乗算　vertices[i].position = vertices[i].position,100.0f;
-    }
+   
 
     // 頂点数が0でないことを確認
     assert(vertices.size() > 0 && "頂点の生成に失敗");
