@@ -328,21 +328,17 @@ HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResourc
     XMStoreFloat4x4(&cb.world, XMMatrixTranspose(worldMatrix));
     XMStoreFloat4x4(&cb.view, XMMatrixTranspose(viewMatrix));
     XMStoreFloat4x4(&cb.projection, XMMatrixTranspose(projMatrix));
+
     m_constantBuffer.SetData(deviceResources->GetD3DDeviceContext(), cb);
-//	m_boneBuffer.SetData(deviceResources->GetD3DDeviceContext(), m_bone);
+    // マテリアルプロパティ
+    Material material = {};
+    material.Ambient = DirectX::XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+    material.Diffuse = DirectX::XMFLOAT4(0.8f, 0.0f, 0.0f, 1.0f); // 赤
+    material.Specular = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+    material.Shininess = 32.0f;
+    m_materialbuffer.Create(deviceResources->GetD3DDevice());
 
-    
-    // Map Vertex Buffer for Updates
-    auto context = deviceResources->GetD3DDeviceContext();
-    D3D11_MAPPED_SUBRESOURCE mappedResource = {};
-    hr = context->Map(vertexBufferTemp.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    if (FAILED(hr))
-    {
-        return hr;
-    }
-
-    memcpy(mappedResource.pData, vertices.data(), sizeof(DirectX::VertexPositionNormalColorTexture) * vertices.size());
-    context->Unmap(vertexBufferTemp.Get(), 0);
+    m_materialbuffer.SetData(deviceResources->GetD3DDeviceContext(), material);
 
     return S_OK;
 }
@@ -377,7 +373,10 @@ HRESULT education::Model::craetepipelineState(const DX::DeviceResources* deviceR
 }
 
 
-void education::Model::Draw(const DX::DeviceResources* deviceResources) {
+
+
+
+void education::Model::Draw(const DX::DeviceResources* DR) {
     if (vertices.empty() || indices.empty()) {
         OutputDebugStringA("Vertex or index buffer is empty.\n");
         return;
@@ -401,13 +400,9 @@ void education::Model::Draw(const DX::DeviceResources* deviceResources) {
     // プリミティブトポロジー設定
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    // 定数バッファの設定
-    auto constantBuffer = m_constantBuffer.GetBuffer();
-	//auto boneBuffer = m_boneBuffer.GetBuffer();
-    context->VSSetConstantBuffers(0, 1, &constantBuffer);
-    context->PSSetConstantBuffers(0, 1, &constantBuffer);
-	//context->VSSetConstantBuffers(1, 1, &boneBuffer);
-	//context->PSSetConstantBuffers(1, 1, &boneBuffer);
+    auto buffer = m_constantBuffer.GetBuffer();
+    context->VSSetConstantBuffers(0, 1, &buffer);
+    context->PSSetConstantBuffers(0, 1, &buffer);
 
     // シェーダー設定
     context->VSSetShader(m_vertexShader.Get(), nullptr, 0);

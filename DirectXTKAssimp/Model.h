@@ -13,6 +13,15 @@ struct Bone
 
 };
 namespace education {
+
+	// シンプルなマテリアル構造体
+	struct Material {
+		DirectX::XMFLOAT4 Ambient;   // 環境光
+		DirectX::XMFLOAT4 Diffuse;   // 拡散色
+		DirectX::XMFLOAT4 Specular;  // 鏡面反射
+		float Shininess;             // 光沢度
+	};
+
 	class Model 
 	{
 	public:
@@ -30,12 +39,16 @@ namespace education {
 		
 		
 		HRESULT craetepipelineState(const DX::DeviceResources* deviceResources);
+		
+		void CreateMaterialMapping(ID3D11Device* device, ID3D11DeviceContext* context);
 		void Draw(const DX::DeviceResources* DR);
 		
 	
 		
 		
-		
+		DirectX::ConstantBuffer<Material> m_materialbuffer;
+
+
 
 		const aiScene* m_scene;
 		Assimp::Importer m_importer;
