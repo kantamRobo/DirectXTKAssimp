@@ -343,6 +343,26 @@ HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResourc
     return S_OK;
 }
 
+HRESULT education::Model::CreateTexture(ID3D11Device* device)
+{
+    D3D11_SAMPLER_DESC samplerDesc = {};
+    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+
+    ComPtr<ID3D11SamplerState> samplerState;
+    HRESULT hr = device->CreateSamplerState(&samplerDesc, &samplerState);
+    if (FAILED(hr)) {
+        OutputDebugStringA("Failed to create sampler state.\n");
+        return hr;
+    }
+    hr = DirectX::CreateDDSTextureFromFile(device, L"SEAFLOOR.DDS",
+        m_textureBuffer.ReleaseAndGetAddressOf(), m_modelsrv.ReleaseAndGetAddressOf(), 0, nullptr);
+   
+    return hr;
+}
+
 
 
 HRESULT education::Model::craetepipelineState(const DX::DeviceResources* deviceResources)
@@ -382,11 +402,11 @@ void education::Model::Draw(const DX::DeviceResources* DR) {
         return;
     }
 
-    auto context = deviceResources->GetD3DDeviceContext();
+    auto context = DR->GetD3DDeviceContext();
 
     // Input Layout 設定
     context->IASetInputLayout(m_modelInputLayout.Get());
-
+   
     // インデックスバッファの設定
     auto indexBuffer = static_cast<ID3D11Buffer*>(m_indexBuffer.Get());
     context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R16_UINT, 0);
@@ -407,8 +427,10 @@ void education::Model::Draw(const DX::DeviceResources* DR) {
     // シェーダー設定
     context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
     context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
+    context->PSSetSamplers(0, 1, samplerState.GetAddressOf());
 
-    // 描画コール
+    context->PSSetShaderResources(0, 1, m_modelsrv.GetAddressOf());
+    // 描画コール   
     context->DrawIndexed(static_cast<UINT>(indices.size()), 0, 0);
 }
 

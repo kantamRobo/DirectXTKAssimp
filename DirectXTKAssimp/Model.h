@@ -4,7 +4,9 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <DDSTextureLoader.h>
 #include <vector>
+
 struct Bone
 {
 	std::string name;
@@ -14,6 +16,8 @@ struct Bone
 };
 namespace education {
 
+	using namespace DirectX;
+	using namespace Microsoft::WRL;
 	// シンプルなマテリアル構造体
 	struct Material {
 		DirectX::XMFLOAT4 Ambient;   // 環境光
@@ -36,11 +40,11 @@ namespace education {
 		
 		HRESULT CreateShaders(const DX::DeviceResources* deviceResources);
 		HRESULT CreateBuffers(const DX::DeviceResources* deviceResources, int width, int height);
+		HRESULT CreateTexture( ID3D11Device* device);
 		
 		
 		HRESULT craetepipelineState(const DX::DeviceResources* deviceResources);
 		
-		void CreateMaterialMapping(ID3D11Device* device, ID3D11DeviceContext* context);
 		void Draw(const DX::DeviceResources* DR);
 		
 	
@@ -56,8 +60,9 @@ namespace education {
 		//バッファ
 		Microsoft::WRL::ComPtr<ID3D11Resource> m_vertexBuffer;
 		Microsoft::WRL::ComPtr<ID3D11Resource> m_indexBuffer;
-
-
+		Microsoft::WRL::ComPtr<ID3D11Resource> m_textureBuffer;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_modelsrv;
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
 		std::vector<DirectX::VertexPositionNormalColorTexture> vertices;
 		std::vector<unsigned short> indices;
 		DirectX::ConstantBuffer<SceneCB> m_constantBuffer;
