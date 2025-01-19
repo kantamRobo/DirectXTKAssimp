@@ -16,7 +16,7 @@
 
 #pragma comment(lib, "d3dcompiler.lib")
 
-using namespace education;
+
 //TODO:コンストラクタでモデルロード・バッファ作成・シェーダー作成を行う
 
 
@@ -248,92 +248,34 @@ auto hr =D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_
 
 HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResources, int width, int height)
 {
-    auto device = deviceResources->GetD3DDevice();
+    //頂点バッファの作成
+    DirectX::CreateStaticBuffer(deviceResources->GetD3DDevice(), vertices.data(), vertices.size(), sizeof(DirectX::VertexPositionNormalColorTexture), D3D11_BIND_VERTEX_BUFFER, m_vertexBuffer.GetAddressOf());
+    //インデックスバッファの作成
+    DirectX::CreateStaticBuffer(deviceResources->GetD3DDevice(), indices.data(), indices.size(), sizeof(UINT), D3D11_BIND_INDEX_BUFFER, m_indexBuffer.GetAddressOf());
+    //定数バッファの作成
+    m_constantBuffer.Create(deviceResources->GetD3DDevice());
 
-    // Vertex Buffer Description
-    auto vertexBufferDesc = CD3D11_BUFFER_DESC(
-        sizeof(DirectX::VertexPositionNormalColorTexture) * vertices.size(), // Total size
-        D3D11_BIND_VERTEX_BUFFER,                                           // Bind as vertex buffer
-        D3D11_USAGE_DYNAMIC,                                                // Dynamic usage
-        D3D11_CPU_ACCESS_WRITE                                              // Allow CPU write access
-    );
-
-    // Initial data for Vertex Buffer
-    D3D11_SUBRESOURCE_DATA vertexData = {};
-    vertexData.pSysMem = vertices.data();
-
-    // Create Vertex Buffer
-    Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBufferTemp;
-    HRESULT hr = device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBufferTemp);
-    if (FAILED(hr))
-    {
-        return hr;
-    }
-
-    // Store as ID3D11Resource
-    m_vertexBuffer = vertexBufferTemp;
-
-    // Index Buffer Description
-    auto indexBufferDesc = CD3D11_BUFFER_DESC(
-        sizeof(UINT) * indices.size(), // Total size
-        D3D11_BIND_INDEX_BUFFER,       // Bind as index buffer
-        D3D11_USAGE_DYNAMIC,           // Dynamic usage
-        D3D11_CPU_ACCESS_WRITE         // Allow CPU write access
-    );
-
-    // Initial data for Index Buffer
-    D3D11_SUBRESOURCE_DATA indexData = {};
-    indexData.pSysMem = indices.data();
-
-    // Create Index Buffer
-    Microsoft::WRL::ComPtr<ID3D11Buffer> indexBufferTemp;
-    hr = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBufferTemp);
-    if (FAILED(hr))
-    {
-        return hr;
-    }
-
-    // Store as ID3D11Resource
-    m_indexBuffer = indexBufferTemp;
-
-    // Create Constant Buffer
-    m_constantBuffer.Create(device);
-
-    // Set up Matrices
     DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+
     DirectX::XMVECTOR eye = DirectX::XMVectorSet(2.0f, 2.0f, -2.0f, 0.0f);
     DirectX::XMVECTOR focus = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
     DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
     DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixLookAtLH(eye, focus, up);
 
-    float fov = DirectX::XMConvertToRadians(45.0f);
-    float aspect = static_cast<float>(width) / static_cast<float>(height);
-    float nearZ = 0.1f;
-    float farZ = 100.0f;
+    float    fov = DirectX::XMConvertToRadians(45.0f);
+    float    aspect = height / width;
+    float    nearZ = 0.1f;
+    float    farZ = 100.0f;
     DirectX::XMMATRIX projMatrix = DirectX::XMMatrixPerspectiveFovLH(fov, aspect, nearZ, farZ);
 
-    // Update Constant Buffer
-    SceneCB cb = {};
+    SceneCB cb;
     XMStoreFloat4x4(&cb.world, XMMatrixTranspose(worldMatrix));
     XMStoreFloat4x4(&cb.view, XMMatrixTranspose(viewMatrix));
     XMStoreFloat4x4(&cb.projection, XMMatrixTranspose(projMatrix));
+
     m_constantBuffer.SetData(deviceResources->GetD3DDeviceContext(), cb);
-
-    // Map Vertex Buffer for Updates
-    auto context = deviceResources->GetD3DDeviceContext();
-    D3D11_MAPPED_SUBRESOURCE mappedResource = {};
-    hr = context->Map(vertexBufferTemp.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    if (FAILED(hr))
-    {
-        return hr;
-    }
-
-    memcpy(mappedResource.pData, vertices.data(), sizeof(DirectX::VertexPositionNormalColorTexture) * vertices.size());
-    context->Unmap(vertexBufferTemp.Get(), 0);
-
     return S_OK;
 }
-
 
 
 HRESULT education::Model::craetepipelineState(const DX::DeviceResources* deviceResources)
@@ -364,41 +306,32 @@ HRESULT education::Model::craetepipelineState(const DX::DeviceResources* deviceR
 }
 
 
-void education::Model::Draw(const DX::DeviceResources* deviceResources) {
+
+
+
+void education::Model::Draw(const DX::DeviceResources* DR) {
     if (vertices.empty() || indices.empty()) {
         OutputDebugStringA("Vertex or index buffer is empty.\n");
         return;
     }
 
-    auto context = deviceResources->GetD3DDeviceContext();
-
-    // Input Layout 設定
+    auto context = DR->GetD3DDeviceContext();
     context->IASetInputLayout(m_modelInputLayout.Get());
+    context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
 
-    // インデックスバッファの設定
-    auto indexBuffer = static_cast<ID3D11Buffer*>(m_indexBuffer.Get());
-    context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R16_UINT, 0);
-
-    // 頂点バッファの設定
-    UINT stride = sizeof(DirectX::VertexPositionNormalColorTexture);
+    UINT size = sizeof(DirectX::VertexPositionNormalColorTexture);
     UINT offset = 0;
-    auto vertexBuffer = static_cast<ID3D11Buffer*>(m_vertexBuffer.Get());
-    context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-
-    // プリミティブトポロジー設定
+    context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &size, &offset);
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    // 定数バッファの設定
-    auto constantBuffer = m_constantBuffer.GetBuffer();
-    context->VSSetConstantBuffers(0, 1, &constantBuffer);
-    context->PSSetConstantBuffers(0, 1, &constantBuffer);
+    auto buffer = m_constantBuffer.GetBuffer();
+    context->VSSetConstantBuffers(0, 1, &buffer);
+    context->PSSetConstantBuffers(0, 1, &buffer);
 
-    // シェーダー設定
     context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
     context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 
-    // 描画コール
-    context->DrawIndexed(static_cast<UINT>(indices.size()), 0, 0);
+    context->DrawIndexedInstanced(static_cast<UINT>(indices.size()), 1, 0, 0, 0);
 }
 
 

@@ -41,8 +41,8 @@ namespace education {
 		Assimp::Importer m_importer;
 
 		//バッファ
-		Microsoft::WRL::ComPtr<ID3D11Resource> m_vertexBuffer;
-		Microsoft::WRL::ComPtr<ID3D11Resource> m_indexBuffer;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> m_vertexBuffer;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> m_indexBuffer;
 
 
 		std::vector<DirectX::VertexPositionNormalColorTexture> vertices;
