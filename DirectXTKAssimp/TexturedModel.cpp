@@ -4,8 +4,31 @@
 TexturedModel::TexturedModel(DX::DeviceResources* deviceresources, const char* path, int width, int height)
 {
 
+    if (!LoadModel(path))
+    {
+        std::abort();
+    }
 
+    /*
+    追加分
+    */
+    if (FAILED(CreateBuffers(deviceresources, width, height)))
+    {
+        std::abort();
+    }
+    //追加分
+    CreateTexture(deviceresources->GetD3DDevice(), "C:\\Users\\hatte\\source\\repos\\DirectXTKAssimp\\DirectXTKAssimp\\test.png");
+    if (FAILED(CreateShaders(deviceresources, L"VertexShader.hlsl", L"PixelShader.hlsl")))
+    {
+        std::abort();
+    }
+    if (FAILED(craetepipelineState(deviceresources)))
+    {
+        std::abort();
+    }
 }
+
+
 
 HRESULT TexturedModel::CreateTexture(ID3D11Device* device,const char* texturedPath)
 {
@@ -59,7 +82,7 @@ HRESULT TexturedModel::CreateTexture(ID3D11Device* device,const char* texturedPa
 	
 }
 
-
+//インプットレイアウトを
 
 void TexturedModel::DrawTextured(const DX::DeviceResources* DR) {
     if (vertices.empty() || indices.empty()) {
@@ -82,12 +105,8 @@ void TexturedModel::DrawTextured(const DX::DeviceResources* DR) {
 
     context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
     context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
-    // ピクセルシェーダーにシェーダーリソースビューとサンプラーステートをセット context->PSSetShaderResources(0, 1, m_textureSRV.GetAddressOf()); context->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
+    // ピクセルシェーダーにシェーダーリソースビューとサンプラーステートをセット 
+    context->PSSetShaderResources(0, 1, m_textureSRV.GetAddressOf()); context->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
 
     context->DrawIndexedInstanced(static_cast<UINT>(indices.size()), 1, 0, 0, 0);
-}
-
-HRESULT TexturedModel::CreateTexture(ID3D11Device* device, texturedPath)
-{
-    return E_NOTIMPL;
 }

@@ -4,7 +4,7 @@
 
 #include "pch.h"
 #include "Game.h"
-#include "Model.h"
+#include "TexturedModel.h"
 extern void ExitGame() noexcept;
 
 using namespace DirectX;
@@ -168,7 +168,7 @@ void Game::CreateDeviceDependentResources()
     auto device = m_deviceResources->GetD3DDevice();
 
     // TODO: Initialize device dependent objects here (independent of window size).
-	model = std::make_unique<education::Model>(m_deviceResources.get(), "C:\\Users\\hatte\\source\\repos\\DirectXTKAssimp\\DirectXTKAssimp\\–³‘è.x",m_height,m_width);
+	model = std::make_unique<TexturedModel>(m_deviceResources.get(), "C:\\Users\\hatte\\source\\repos\\DirectXTKAssimp\\DirectXTKAssimp\\–³‘è.x",m_height,m_width);
     device;
 
 

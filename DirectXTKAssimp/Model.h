@@ -26,6 +26,7 @@ namespace education {
 
 		void GenerateBones();
 
+		
 		HRESULT CreateShaders(const DX::DeviceResources* deviceResources, const LPCTSTR& vertexshaderpath, const LPCTSTR& pixelshaderpath);
 
 		HRESULT CreateBuffers(const DX::DeviceResources* deviceResources, int width, int height);
