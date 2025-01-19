@@ -5,6 +5,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <vector>
+#include <string>
 struct bone
 {
 	std::string name;
@@ -24,9 +25,14 @@ namespace education {
 		std::vector<DirectX::VertexPositionNormalColorTexture> GenerateVertices();
 
 		void GenerateBones();
-		
-		HRESULT CreateShaders(const DX::DeviceResources* deviceResources);
+
+		HRESULT CreateShaders(const DX::DeviceResources* deviceResources, const LPCTSTR& vertexshaderpath, const LPCTSTR& pixelshaderpath);
+
 		HRESULT CreateBuffers(const DX::DeviceResources* deviceResources, int width, int height);
+
+		
+		
+		
 		
 		
 		HRESULT craetepipelineState(const DX::DeviceResources* deviceResources);

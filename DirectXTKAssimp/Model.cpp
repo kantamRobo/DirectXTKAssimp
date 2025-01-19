@@ -35,7 +35,7 @@ education::Model::Model(DX::DeviceResources* deviceresources,const char* path,in
     {
 		std::abort();
     }
-	if(FAILED(CreateShaders(deviceresources)))
+	if(FAILED(CreateShaders(deviceresources, L"VertexShader.hlsl", L"PixelShader.hlsl")))
 	{
 		std::abort();
 	}
@@ -182,7 +182,7 @@ void education::Model::GenerateBones()
 
 
 
-HRESULT education::Model::CreateShaders(const DX::DeviceResources* deviceResources)
+HRESULT education::Model::CreateShaders(const DX::DeviceResources* deviceResources,const LPCTSTR& vertexshaderpath, const LPCTSTR&  pixelshaderpath)
 {
     //パイプラインステートの作成
     auto device = deviceResources->GetD3DDevice();
@@ -192,7 +192,7 @@ HRESULT education::Model::CreateShaders(const DX::DeviceResources* deviceResourc
     // 頂点シェーダーのコンパイル
     Microsoft::WRL::ComPtr<ID3DBlob> pVSBlob;
     Microsoft::WRL::ComPtr<ID3DBlob> perrrorBlob;
-auto hr =D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_5_0", 0, 0, pVSBlob.GetAddressOf(), perrrorBlob.GetAddressOf());
+auto hr =D3DCompileFromFile(vertexshaderpath, nullptr, nullptr, "main", "vs_5_0", 0, 0, pVSBlob.GetAddressOf(), perrrorBlob.GetAddressOf());
 	if (FAILED(hr))
 	{
 		OutputDebugStringA(reinterpret_cast<const char*>(perrrorBlob->GetBufferPointer()));
@@ -210,7 +210,7 @@ auto hr =D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_
 
     // ピクセルシェーダーのコンパイル
     Microsoft::WRL::ComPtr<ID3DBlob> pPSBlob;
-    hr = D3DCompileFromFile(L"PixelShader.hlsl", nullptr, nullptr, "main", "ps_5_0", 0, 0, pPSBlob.GetAddressOf(), nullptr);
+    hr = D3DCompileFromFile(pixelshaderpath, nullptr, nullptr, "main", "ps_5_0", 0, 0, pPSBlob.GetAddressOf(), nullptr);
 
     if (FAILED(hr))
     {

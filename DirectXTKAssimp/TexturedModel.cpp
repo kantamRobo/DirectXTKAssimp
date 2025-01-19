@@ -7,7 +7,7 @@ TexturedModel::TexturedModel(DX::DeviceResources* deviceresources, const char* p
 
 }
 
-HRESULT TexturedModel::CreateTexture(ID3D11Device* device)
+HRESULT TexturedModel::CreateTexture(ID3D11Device* device,const char* texturedPath)
 {
 
     // WIC ファイルのロード (DirectXTex 使用)
@@ -57,4 +57,37 @@ HRESULT TexturedModel::CreateTexture(ID3D11Device* device)
     return S_OK;
 
 	
+}
+
+
+
+void TexturedModel::DrawTextured(const DX::DeviceResources* DR) {
+    if (vertices.empty() || indices.empty()) {
+        OutputDebugStringA("Vertex or index buffer is empty.\n");
+        return;
+    }
+
+    auto context = DR->GetD3DDeviceContext();
+    context->IASetInputLayout(m_modelInputLayout.Get());
+    context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+
+    UINT size = sizeof(DirectX::VertexPositionNormalColorTexture);
+    UINT offset = 0;
+    context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &size, &offset);
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    auto buffer = m_constantBuffer.GetBuffer();
+    context->VSSetConstantBuffers(0, 1, &buffer);
+    context->PSSetConstantBuffers(0, 1, &buffer);
+
+    context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
+    context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
+    // ピクセルシェーダーにシェーダーリソースビューとサンプラーステートをセット context->PSSetShaderResources(0, 1, m_textureSRV.GetAddressOf()); context->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
+
+    context->DrawIndexedInstanced(static_cast<UINT>(indices.size()), 1, 0, 0, 0);
+}
+
+HRESULT TexturedModel::CreateTexture(ID3D11Device* device, texturedPath)
+{
+    return E_NOTIMPL;
 }
