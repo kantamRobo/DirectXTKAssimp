@@ -212,6 +212,7 @@
     <Manifest Include="settings.manifest" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Model.hlsli" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

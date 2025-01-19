@@ -6,7 +6,7 @@
 #include "pch.h"
 #include <memory>
 #include "StepTimer.h"
-
+#include "TexturedModel.h"
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
 class Game final : public DX::IDeviceNotify
@@ -51,7 +51,7 @@ public:
         m_height = height;
     }
 private:
-    std::unique_ptr<education::Model> model;
+    std::unique_ptr<TexturedModel> model;
     void Update(DX::StepTimer const& timer);
     void Render();
 

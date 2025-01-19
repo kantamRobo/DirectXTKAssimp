@@ -192,7 +192,7 @@ HRESULT education::Model::CreateShaders(const DX::DeviceResources* deviceResourc
     // 頂点シェーダーのコンパイル
     Microsoft::WRL::ComPtr<ID3DBlob> pVSBlob;
     Microsoft::WRL::ComPtr<ID3DBlob> perrrorBlob;
-auto hr =D3DCompileFromFile(vertexshaderpath, nullptr, nullptr, "main", "vs_5_0", 0, 0, pVSBlob.GetAddressOf(), perrrorBlob.GetAddressOf());
+auto hr =D3DCompileFromFile(vertexshaderpath, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_5_0", 0, 0, pVSBlob.GetAddressOf(), perrrorBlob.GetAddressOf());
 	if (FAILED(hr))
 	{
 		OutputDebugStringA(reinterpret_cast<const char*>(perrrorBlob->GetBufferPointer()));
@@ -210,7 +210,7 @@ auto hr =D3DCompileFromFile(vertexshaderpath, nullptr, nullptr, "main", "vs_5_0"
 
     // ピクセルシェーダーのコンパイル
     Microsoft::WRL::ComPtr<ID3DBlob> pPSBlob;
-    hr = D3DCompileFromFile(pixelshaderpath, nullptr, nullptr, "main", "ps_5_0", 0, 0, pPSBlob.GetAddressOf(), nullptr);
+    hr = D3DCompileFromFile(pixelshaderpath, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_5_0", 0, 0, pPSBlob.GetAddressOf(), nullptr);
 
     if (FAILED(hr))
     {

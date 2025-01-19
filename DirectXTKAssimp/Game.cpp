@@ -78,7 +78,7 @@ void Game::Render()
 
     // TODO: Add your rendering code here.
     context;
-	model->Draw(m_deviceResources.get());
+	model->DrawTextured(m_deviceResources.get());
     m_deviceResources->PIXEndEvent();
 
     // Show the new frame.
