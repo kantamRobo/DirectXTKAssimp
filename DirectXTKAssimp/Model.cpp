@@ -192,7 +192,7 @@ HRESULT education::Model::CreateShaders(const DX::DeviceResources* deviceResourc
     // 頂点シェーダーのコンパイル
     Microsoft::WRL::ComPtr<ID3DBlob> pVSBlob;
     Microsoft::WRL::ComPtr<ID3DBlob> perrrorBlob;
-auto hr =D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_5_0", 0, 0, pVSBlob.GetAddressOf(), perrrorBlob.GetAddressOf());
+auto hr =D3DCompileFromFile(L"VertexShader.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_5_0", 0, 0, pVSBlob.GetAddressOf(), perrrorBlob.GetAddressOf());
 	if (FAILED(hr))
 	{
 		OutputDebugStringA(reinterpret_cast<const char*>(perrrorBlob->GetBufferPointer()));
@@ -210,7 +210,7 @@ auto hr =D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_
 
     // ピクセルシェーダーのコンパイル
     Microsoft::WRL::ComPtr<ID3DBlob> pPSBlob;
-    hr = D3DCompileFromFile(L"PixelShader.hlsl", nullptr, nullptr, "main", "ps_5_0", 0, 0, pPSBlob.GetAddressOf(), nullptr);
+    hr = D3DCompileFromFile(L"PixelShader.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_5_0", 0, 0, pPSBlob.GetAddressOf(), nullptr);
 
     if (FAILED(hr))
     {
@@ -330,15 +330,16 @@ HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResourc
     XMStoreFloat4x4(&cb.projection, XMMatrixTranspose(projMatrix));
 
     m_constantBuffer.SetData(deviceResources->GetD3DDeviceContext(), cb);
+  /*
     // マテリアルプロパティ
     Material material = {};
     material.Ambient = DirectX::XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
     material.Diffuse = DirectX::XMFLOAT4(0.8f, 0.0f, 0.0f, 1.0f); // 赤
     material.Specular = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
     material.Shininess = 32.0f;
-    m_materialbuffer.Create(deviceResources->GetD3DDevice());
-
-    m_materialbuffer.SetData(deviceResources->GetD3DDeviceContext(), material);
+//    m_materialbuffer.Create(deviceResources->GetD3DDevice());
+*/
+   // m_materialbuffer.SetData(deviceResources->GetD3DDeviceContext(), material);
 
     return S_OK;
 }
