@@ -385,6 +385,7 @@ HRESULT education::Model::craetepipelineState(const DX::DeviceResources* deviceR
 	auto hr =deviceResources->GetD3DDevice()->CreateRasterizerState(&rasterizerDesc, m_rasterizerState.GetAddressOf());
 
 
+
 	if (FAILED(hr))
 	{
 		return hr;
