@@ -1,6 +1,7 @@
 #pragma once
 #include <DirectXMath.h>
 #include <Mouse.h>
+#include "Model.h"
 class GameObject
 {
 public:
@@ -9,8 +10,9 @@ public:
 	DirectX::XMVECTOR scale;
 	GameObject* parent;
 	GameObject(const DirectX::XMVECTOR& pos, GameObject* gameobj);
+	void Tick(DX::DeviceResources* DR);
 	std::unique_ptr<DirectX::Mouse> mouse;
+	education::Model model;
 	
-	void Tick();
 	DirectX::XMMATRIX GetWorldMatrix();
 };

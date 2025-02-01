@@ -8,9 +8,11 @@ GameObject::GameObject(const DirectX::XMVECTOR& vec, GameObject* gameobj) :pos(v
 }
 
 
-void GameObject::Tick()
+void GameObject::Tick(DX::DeviceResources* DR)
 {
 	auto state = mouse->GetState();
+
+
 
 	if (state.leftButton)
 		// Left button is down
@@ -20,11 +22,13 @@ void GameObject::Tick()
 	{
 		int mouseX, mouseY;
 		GetMousePoint(&mouseX, &mouseY);
-		this->pos.x = mouseX;
+		this->pos = mouseX;
 		this->pos.y = mouseY;
 
-		child->pos = VSub(this->pos, child->pos);
+		this->pos = DirectX::XMVectorSubtract(parent->pos,this->pos);
 	}
+
+	model.Draw(DR);
 }
 
 
