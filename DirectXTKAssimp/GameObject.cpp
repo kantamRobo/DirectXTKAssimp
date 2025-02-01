@@ -1,9 +1,9 @@
 #include "GameObject.h"
-
+#include <DirectXMath.h>
 
 GameObject::GameObject(const DirectX::XMVECTOR& vec, GameObject* gameobj) :pos(vec)
 {
-	child = gameobj;
+	parent = gameobj;
 	mouse = std::make_unique<DirectX::Mouse>();
 }
 
@@ -26,3 +26,31 @@ void GameObject::Tick()
 		child->pos = VSub(this->pos, child->pos);
 	}
 }
+
+
+// ワールド行列を計算する 
+DirectX::XMMATRIX GameObject::GetWorldMatrix() {
+
+ // スケール、回転、移動のローカル行列を作成MATRIX 
+ 
+DirectX::XMMATRIX scalemat = DirectX::XMMatrixScaling(1,1,1);
+
+ 
+ DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationAxis(rot, 0);
+ DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslationFromVector(pos);
+
+
+// ローカル変換行列（S * R * T の順） MATRIX localMatrix = MMult(scaleMat, rotMat); localMatrix = MMult(localMatrix, transMat); 
+// 親がいる場合は親のワールド行列と掛け合わせる if (parent) { 
+  // ローカル変換行列（S * R * T の順）
+ DirectX::XMMATRIX localMatrix = DirectX::XMMatrixMultiply(scalemat, rotMat);
+ localMatrix = DirectX::XMMatrixMultiply(localMatrix, transMat);
+ if (parent) {
+ return DirectX::XMMatrixMultiply(parent->GetWorldMatrix(), localMatrix);
+} else {
+
+	 return localMatrix;
+
+
+}
+
