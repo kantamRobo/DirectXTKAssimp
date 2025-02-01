@@ -4,7 +4,7 @@
 
 #include "pch.h"
 #include "Game.h"
-
+#include <Mouse.h>
 using namespace DirectX;
 
 #ifdef __clang__
@@ -43,9 +43,9 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     HRESULT hr = CoInitializeEx(nullptr, COINITBASE_MULTITHREADED);
     if (FAILED(hr))
         return 1;
-
+    std::unique_ptr<Mouse> mouse;
     g_game = std::make_unique<Game>();
-
+    mouse = std::make_unique<Mouse>();
     // Register class and create window
     {
         // Register class
@@ -288,6 +288,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
 
+
+    switch (message)
+    {
+    case WM_ACTIVATE:
+    case WM_ACTIVATEAPP:
+    case WM_INPUT:
+    case WM_MOUSEMOVE:
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONUP:
+    case WM_RBUTTONDOWN:
+    case WM_RBUTTONUP:
+    case WM_MBUTTONDOWN:
+    case WM_MBUTTONUP:
+    case WM_MOUSEWHEEL:
+    case WM_XBUTTONDOWN:
+    case WM_XBUTTONUP:
+    case WM_MOUSEHOVER:
+        Mouse::ProcessMessage(message, wParam, lParam);
+        break;
+    }
+   
     return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
