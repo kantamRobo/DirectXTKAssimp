@@ -179,6 +179,71 @@ void education::Model::GenerateBones()
 
 
 }
+// ボーンごとの最大数
+constexpr int MAX_BONE_INFLUENCE = 4;
+constexpr int MAX_BONES = 100;
+
+
+
+// ボーン情報
+struct BoneInfo {
+    DirectX::XMMATRIX offsetMatrix;  // ボーンのオフセット行列
+    DirectX::XMMATRIX finalTransform; // アニメーション計算後に渡す行列
+};
+
+
+std::map<std::string, int> boneMapping; // ボーン名 → インデックス
+std::vector<BoneInfo> boneInfos;        // ボーンの情報配列
+int boneCount = 0;                      // ボーンの総数
+
+
+
+void ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene)
+{
+    for (unsigned int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
+        aiBone* bone = mesh->mBones[boneIndex];
+        std::string boneName(bone->mName.C_Str());
+
+        int boneID = 0;
+        if (boneMapping.find(boneName) == boneMapping.end()) {
+            // 新規ボーン
+            boneID = boneCount;
+            boneMapping[boneName] = boneID;
+
+            BoneInfo boneInfo;
+            boneInfo.offsetMatrix = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&bone->mOffsetMatrix));
+            boneInfos.push_back(boneInfo);
+            ++boneCount;
+        }
+        else {
+            boneID = boneMapping[boneName];
+        }
+
+        // 頂点にウェイトを割り当てる
+        for (unsigned int weightIndex = 0; weightIndex < bone->mNumWeights; ++weightIndex) {
+            unsigned int vertexID = bone->mWeights[weightIndex].mVertexId;
+            float weight = bone->mWeights[weightIndex].mWeight;
+
+            for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
+                if (vertices[vertexID].boneIDs[i] < 0) {
+                    vertices[vertexID].boneIDs[i] = boneID;
+                    vertices[vertexID].weights[i] = weight;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+
+for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
+    aiMesh* mesh = scene->mMeshes[i];
+    std::vector<Vertex> vertices;
+
+    // 頂点などを読み込む処理（省略）
+
+    ExtractBoneWeightForVertices(vertices, mesh, scene);
+}
 
 
 
