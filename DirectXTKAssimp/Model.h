@@ -34,7 +34,7 @@ namespace education {
 		
 		Model(DX::DeviceResources* deviceresources, const char* path, int width, int height);
 		bool LoadModel(const char* path);
-		std::vector<DirectX::VertexPositionNormalColorTexture> GenerateVertices();
+		std::vector<DirectX::VertexPositionNormalTangentColorTextureSkinning> GenerateVertices();
 
 		void GenerateBones();
 		

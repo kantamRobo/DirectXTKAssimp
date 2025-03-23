@@ -12,6 +12,7 @@
 
 #include <functional>
 #include "Model.h"
+#include <map>
 
 
 #pragma comment(lib, "d3dcompiler.lib")
@@ -77,13 +78,13 @@ bool education::Model::LoadModel(const char* path)
     return true;
 }
 
-std::vector<DirectX::VertexPositionNormalColorTexture> education::Model::GenerateVertices()
+std::vector<DirectX::VertexPositionNormalTangentColorTextureSkinning> education::Model::GenerateVertices()
 {
     assert(m_scene);
 
 
 
-    std::vector< DirectX::VertexPositionNormalColorTexture> outvertices;
+    std::vector<DirectX::VertexPositionNormalTangentColorTextureSkinning> outvertices;
     outvertices.clear();
 
     for (unsigned int i = 0; i < m_scene->mNumMeshes; i++)
@@ -94,7 +95,7 @@ std::vector<DirectX::VertexPositionNormalColorTexture> education::Model::Generat
 
         for (unsigned int j = 0; j < mesh->mNumVertices; j++)
         {
-            DirectX::VertexPositionNormalColorTexture vertex = {};
+            DirectX::VertexPositionNormalTangentColorTextureSkinning vertex = {};
             aiVector3D pos = mesh->mVertices[j];
 
 
@@ -198,7 +199,7 @@ int boneCount = 0;                      // ボーンの総数
 
 
 
-void ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene)
+void ExtractBoneWeightForVertices(std::vector<VertexPositionNormalTangentColorTextureSkinning>& vertices, aiMesh* mesh, const aiScene* scene)
 {
     for (unsigned int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
         aiBone* bone = mesh->mBones[boneIndex];
@@ -225,26 +226,26 @@ void ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* mesh, c
             float weight = bone->mWeights[weightIndex].mWeight;
 
             for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
-                if (vertices[vertexID].boneIDs[i] < 0) {
-                    vertices[vertexID].boneIDs[i] = boneID;
-                    vertices[vertexID].weights[i] = weight;
+               
+                    vertices[vertexID].weights = weight;
+                    
                     break;
-                }
+                
             }
         }
     }
+
+
+
+    for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
+        aiMesh* mesh = scene->mMeshes[i];
+        std::vector<DirectX::VertexPositionNormalTangentColorTextureSkinning> vertices;
+
+        // 頂点などを読み込む処理（省略）
+
+        ExtractBoneWeightForVertices(vertices, mesh, scene);
+    }
 }
-
-
-for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
-    aiMesh* mesh = scene->mMeshes[i];
-    std::vector<Vertex> vertices;
-
-    // 頂点などを読み込む処理（省略）
-
-    ExtractBoneWeightForVertices(vertices, mesh, scene);
-}
-
 
 
 HRESULT education::Model::CreateShaders(const DX::DeviceResources* deviceResources)
