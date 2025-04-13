@@ -14,19 +14,13 @@ Assimp::Importer importer;
 //頂点バッファとインデックスバッファの生成
 Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
 Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
+struct CB_Bones {
+    DirectX::XMMATRIX boneMatrices[100];
+};
 
-
-void Init(){
-const aiScene* scene = importer.ReadFile("model.fbx",
-    aiProcess_Triangulate | aiProcess_LimitBoneWeights |
-    aiProcess_JoinIdenticalVertices | aiProcess_FlipUVs);
-
-if (!scene || !scene->HasMeshes() || !scene->HasAnimations()) {
-    throw std::runtime_error("Model loading failed.");
-}
-
-}
-
+struct CB_PerObject {
+    DirectX::XMMATRIX worldViewProj;
+};
 struct Vertex {
     DirectX::XMFLOAT3 position;
     DirectX::XMFLOAT3 normal;
@@ -37,6 +31,26 @@ struct Vertex {
 std::vector<Vertex> vertices;
 std::vector<UINT> indices;
 std::map<std::string, int> boneMapping;
+
+std::vector<DirectX::XMMATRIX> boneTransforms;
+Microsoft::WRL::ComPtr<ID3D11Buffer> perObjectCB;
+Microsoft::WRL::ComPtr<ID3D11Buffer> boneCB;
+
+
+void Init(ID3D11Device* device){
+const aiScene* scene = importer.ReadFile("model.fbx",
+    aiProcess_Triangulate | aiProcess_LimitBoneWeights |
+    aiProcess_JoinIdenticalVertices | aiProcess_FlipUVs);
+
+if (!scene || !scene->HasMeshes() || !scene->HasAnimations()) {
+    throw std::runtime_error("Model loading failed.");
+}
+
+// 使用例
+boneCB = CreateConstantBuffer<CB_Bones>(device);
+perObjectCB = CreateConstantBuffer<CB_PerObject>(device);
+}
+
 void LoadMesh(aiMesh * mesh, std::vector<Vertex>&outVertices, std::vector<UINT>&outIndices, std::map<std::string, int>&boneMapping) {
     outVertices.resize(mesh->mNumVertices);
 
@@ -92,12 +106,6 @@ void LoadMesh(aiMesh * mesh, std::vector<Vertex>&outVertices, std::vector<UINT>&
 Microsoft::WRL::ComPtr < ID3D11Buffer> boneBuffer;
 //TODO boneTransformsperObjectCBboneCBの作成
 
-struct CB_Bones {
-    DirectX::XMMATRIX boneMatrices[100];
-};
-std::vector<DirectX::XMMATRIX> boneTransforms;
-Microsoft::WRL::ComPtr<ID3D11Buffer> perObjectCB;
-Microsoft::WRL::ComPtr<ID3D11Buffer> boneCB;
 void Render(ID3D11DeviceContext* context)
 {
 
@@ -117,4 +125,52 @@ void Render(ID3D11DeviceContext* context)
     context->VSSetConstantBuffers(0, 1, &perObjectCB);
     context->VSSetConstantBuffers(1, 1, &boneCB);
     context->DrawIndexed(indices.size(), 0, 0);
+}
+
+template<typename TVertex>
+ID3D11Buffer* CreateVertexBuffer(ID3D11Device* device, const std::vector<TVertex>& vertices) {
+    D3D11_BUFFER_DESC desc = {};
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.ByteWidth = static_cast<UINT>(sizeof(TVertex) * vertices.size());
+    desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    desc.CPUAccessFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA initData = {};
+    initData.pSysMem = vertices.data();
+
+    ID3D11Buffer* buffer = nullptr;
+    HRESULT hr = device->CreateBuffer(&desc, &initData, &buffer);
+    if (FAILED(hr)) throw std::runtime_error("Failed to create vertex buffer");
+    return buffer;
+}
+
+ID3D11Buffer* CreateIndexBuffer(ID3D11Device* device, const std::vector<UINT>& indices) {
+    D3D11_BUFFER_DESC desc = {};
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.ByteWidth = static_cast<UINT>(sizeof(UINT) * indices.size());
+    desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    desc.CPUAccessFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA initData = {};
+    initData.pSysMem = indices.data();
+
+    ID3D11Buffer* buffer = nullptr;
+    HRESULT hr = device->CreateBuffer(&desc, &initData, &buffer);
+    if (FAILED(hr)) throw std::runtime_error("Failed to create index buffer");
+    return buffer;
+}
+
+
+template<typename TCBuffer>
+ID3D11Buffer* CreateConstantBuffer(ID3D11Device* device) {
+    D3D11_BUFFER_DESC desc = {};
+    desc.Usage = D3D11_USAGE_DYNAMIC;
+    desc.ByteWidth = sizeof(TCBuffer);
+    desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+    ID3D11Buffer* buffer = nullptr;
+    HRESULT hr = device->CreateBuffer(&desc, nullptr, &buffer);
+    if (FAILED(hr)) throw std::runtime_error("Failed to create constant buffer");
+    return buffer;
 }
