@@ -1,43 +1,7 @@
-#include "pch.h"
-#include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
-#include <assimp/mesh.h>
-#include <assimp/scene.h>
-#include <vector>
-#include <map>
-#include <string>
-#include <d3d11.h>
-#include <DirectXMath.h>
-#include <wrl.h>
-Assimp::Importer importer;
-//TODO
-//頂点バッファとインデックスバッファの生成
-Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
-Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
-struct CB_Bones {
-    DirectX::XMMATRIX boneMatrices[100];
-};
 
-struct CB_PerObject {
-    DirectX::XMMATRIX worldViewProj;
-};
-struct Vertex {
-    DirectX::XMFLOAT3 position;
-    DirectX::XMFLOAT3 normal;
-    DirectX::XMFLOAT2 uv;
-    UINT boneIDs[4] = {};
-    float weights[4] = {};
-};
-std::vector<Vertex> vertices;
-std::vector<UINT> indices;
-std::map<std::string, int> boneMapping;
+#include "temp.h"
 
-std::vector<DirectX::XMMATRIX> boneTransforms;
-Microsoft::WRL::ComPtr<ID3D11Buffer> perObjectCB;
-Microsoft::WRL::ComPtr<ID3D11Buffer> boneCB;
-
-
-void Init(ID3D11Device* device){
+void Temp::Init(ID3D11Device* device){
 const aiScene* scene = importer.ReadFile("model.fbx",
     aiProcess_Triangulate | aiProcess_LimitBoneWeights |
     aiProcess_JoinIdenticalVertices | aiProcess_FlipUVs);
@@ -51,7 +15,7 @@ boneCB = CreateConstantBuffer<CB_Bones>(device);
 perObjectCB = CreateConstantBuffer<CB_PerObject>(device);
 }
 
-void LoadMesh(aiMesh * mesh, std::vector<Vertex>&outVertices, std::vector<UINT>&outIndices, std::map<std::string, int>&boneMapping) {
+void Temp::LoadMesh(aiMesh * mesh, std::vector<Vertex>&outVertices, std::vector<UINT>&outIndices, std::map<std::string, int>&boneMapping) {
     outVertices.resize(mesh->mNumVertices);
 
     // 頂点データ格納
@@ -106,7 +70,7 @@ void LoadMesh(aiMesh * mesh, std::vector<Vertex>&outVertices, std::vector<UINT>&
 Microsoft::WRL::ComPtr < ID3D11Buffer> boneBuffer;
 //TODO boneTransformsperObjectCBboneCBの作成
 
-void Render(ID3D11DeviceContext* context)
+void Temp::Render(ID3D11DeviceContext* context)
 {
 
 
@@ -122,13 +86,13 @@ void Render(ID3D11DeviceContext* context)
     context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
-    context->VSSetConstantBuffers(0, 1, &perObjectCB);
+    context->VSSetConstantBuffers(0, 1,&perObjectCB);
     context->VSSetConstantBuffers(1, 1, &boneCB);
     context->DrawIndexed(indices.size(), 0, 0);
 }
 
 template<typename TVertex>
-ID3D11Buffer* CreateVertexBuffer(ID3D11Device* device, const std::vector<TVertex>& vertices) {
+Microsoft::WRL::ComPtr<ID3D11Buffer> Temp::CreateVertexBuffer(ID3D11Device* device, const std::vector<TVertex>& vertices) {
     D3D11_BUFFER_DESC desc = {};
     desc.Usage = D3D11_USAGE_DEFAULT;
     desc.ByteWidth = static_cast<UINT>(sizeof(TVertex) * vertices.size());
@@ -144,7 +108,7 @@ ID3D11Buffer* CreateVertexBuffer(ID3D11Device* device, const std::vector<TVertex
     return buffer;
 }
 
-ID3D11Buffer* CreateIndexBuffer(ID3D11Device* device, const std::vector<UINT>& indices) {
+Microsoft::WRL::ComPtr<ID3D11Buffer> Temp::CreateIndexBuffer(ID3D11Device* device, const std::vector<UINT>& indices) {
     D3D11_BUFFER_DESC desc = {};
     desc.Usage = D3D11_USAGE_DEFAULT;
     desc.ByteWidth = static_cast<UINT>(sizeof(UINT) * indices.size());
@@ -162,7 +126,7 @@ ID3D11Buffer* CreateIndexBuffer(ID3D11Device* device, const std::vector<UINT>& i
 
 
 template<typename TCBuffer>
-ID3D11Buffer* CreateConstantBuffer(ID3D11Device* device) {
+Microsoft::WRL::ComPtr<ID3D11Buffer> Temp::CreateConstantBuffer(ID3D11Device* device) {
     D3D11_BUFFER_DESC desc = {};
     desc.Usage = D3D11_USAGE_DYNAMIC;
     desc.ByteWidth = sizeof(TCBuffer);

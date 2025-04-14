@@ -5,7 +5,7 @@
 #pragma once
 
 #include "StepTimer.h"
-
+#include "temp.h"
 
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
@@ -63,7 +63,7 @@ private:
     Microsoft::WRL::ComPtr<IDXGISwapChain1>         m_swapChain;
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  m_renderTargetView;
     Microsoft::WRL::ComPtr<ID3D11DepthStencilView>  m_depthStencilView;
-
+    Temp temp;
     // Rendering loop timer.
     DX::StepTimer                                   m_timer;
 };

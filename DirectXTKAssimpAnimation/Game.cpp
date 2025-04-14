@@ -25,7 +25,7 @@ void Game::Initialize(HWND window, int width, int height)
     m_window = window;
     m_outputWidth = std::max(width, 1);
     m_outputHeight = std::max(height, 1);
-
+  
     CreateDevice();
 
     CreateResources();
@@ -70,7 +70,7 @@ void Game::Render()
     Clear();
 
     // TODO: Add your rendering code here.
-
+    temp.Render(m_d3dContext.Get());
     Present();
 }
 
@@ -216,6 +216,7 @@ void Game::CreateDevice()
     DX::ThrowIfFailed(context.As(&m_d3dContext));
 
     // TODO: Initialize device dependent objects here (independent of window size).
+    temp.Init(m_d3dDevice.Get());
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
