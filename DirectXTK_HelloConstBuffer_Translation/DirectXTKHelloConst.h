@@ -1,5 +1,6 @@
 #pragma once
 #include <DirectXMath.h>
+#include <BufferHelpers.h>
 struct SceneConstantBuffer
 {
     DirectX::XMFLOAT4 offset;
@@ -30,7 +31,12 @@ private:
         DirectX::XMFLOAT4 offset;
         float padding[60]; // Padding so the constant buffer is 256-byte aligned.
     };
-    SceneConstantBuffer  m_constantBufferData;
+   
+
+
+
+    DirectX::ConstantBuffer<SceneConstantBuffer>m_constantBufferData;
+    HRESULT CreateBuffers( int width, int height);
 };
 
 // Update frame-based values.

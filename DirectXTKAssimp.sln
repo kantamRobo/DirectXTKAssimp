@@ -7,7 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTKAssimp", "DirectXT
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTKAssimpAnimation", "DirectXTKAssimpAnimation\DirectXTKAssimpAnimation.vcxproj", "{9146DFA1-7F9C-414E-9E94-0BA68F351A62}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTK_HelloConstBuffer_Translation", "DirectXTK_HelloConstBuffer_Translation\DirectXTK_HelloConstBuffer_Translation.vcxproj", "{10D37A31-0653-4A5F-9DDE-5BCA3D62D146}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTKHelloConst", "DirectXTKHelloConst\DirectXTKHelloConst.vcxproj", "{019AEDD9-DA8E-4824-91B3-8E0F37328979}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,14 +33,14 @@ Global
 		{9146DFA1-7F9C-414E-9E94-0BA68F351A62}.Release|x64.Build.0 = Release|x64
 		{9146DFA1-7F9C-414E-9E94-0BA68F351A62}.Release|x86.ActiveCfg = Release|Win32
 		{9146DFA1-7F9C-414E-9E94-0BA68F351A62}.Release|x86.Build.0 = Release|Win32
-		{10D37A31-0653-4A5F-9DDE-5BCA3D62D146}.Debug|x64.ActiveCfg = Debug|x64
-		{10D37A31-0653-4A5F-9DDE-5BCA3D62D146}.Debug|x64.Build.0 = Debug|x64
-		{10D37A31-0653-4A5F-9DDE-5BCA3D62D146}.Debug|x86.ActiveCfg = Debug|Win32
-		{10D37A31-0653-4A5F-9DDE-5BCA3D62D146}.Debug|x86.Build.0 = Debug|Win32
-		{10D37A31-0653-4A5F-9DDE-5BCA3D62D146}.Release|x64.ActiveCfg = Release|x64
-		{10D37A31-0653-4A5F-9DDE-5BCA3D62D146}.Release|x64.Build.0 = Release|x64
-		{10D37A31-0653-4A5F-9DDE-5BCA3D62D146}.Release|x86.ActiveCfg = Release|Win32
-		{10D37A31-0653-4A5F-9DDE-5BCA3D62D146}.Release|x86.Build.0 = Release|Win32
+		{019AEDD9-DA8E-4824-91B3-8E0F37328979}.Debug|x64.ActiveCfg = Debug|x64
+		{019AEDD9-DA8E-4824-91B3-8E0F37328979}.Debug|x64.Build.0 = Debug|x64
+		{019AEDD9-DA8E-4824-91B3-8E0F37328979}.Debug|x86.ActiveCfg = Debug|Win32
+		{019AEDD9-DA8E-4824-91B3-8E0F37328979}.Debug|x86.Build.0 = Debug|Win32
+		{019AEDD9-DA8E-4824-91B3-8E0F37328979}.Release|x64.ActiveCfg = Release|x64
+		{019AEDD9-DA8E-4824-91B3-8E0F37328979}.Release|x64.Build.0 = Release|x64
+		{019AEDD9-DA8E-4824-91B3-8E0F37328979}.Release|x86.ActiveCfg = Release|Win32
+		{019AEDD9-DA8E-4824-91B3-8E0F37328979}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

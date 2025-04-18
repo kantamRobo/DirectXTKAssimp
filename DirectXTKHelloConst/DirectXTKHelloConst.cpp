@@ -3,10 +3,33 @@
 #include "DirectXTKHelloConst.h"
 
 
-
-HRESULT DirectXTKHelloConst::CreateBuffers( int width, int height)
+DirectXTKHelloConst::DirectXTKHelloConst(UINT width, UINT height, std::wstring name)
 {
-    auto device = deviceResources->GetD3DDevice();
+}
+
+// Update frame-based values.
+void DirectXTKHelloConst::OnUpdate(DX::DeviceResources* DR)
+{
+    const float translationSpeed = 0.005f;
+    const float offsetBounds = 1.25f;
+
+   
+    sceneCB.offset.x += translationSpeed;
+    
+    if (sceneCB.offset.x > offsetBounds)
+    {
+        sceneCB.offset.x = -offsetBounds;
+    }
+    m_constantBufferData.SetData(DR->GetD3DDeviceContext(), sceneCB);
+    auto buffer = m_constantBufferData.GetBuffer();
+    DR->GetD3DDeviceContext()->PSSetConstantBuffers(0, 1, &buffer);
+}
+
+
+
+HRESULT DirectXTKHelloConst::CreateBuffers(DX::DeviceResources* DR,int width, int height)
+{
+    auto device = DR->GetD3DDevice();
 
     // Vertex Buffer Description
     auto vertexBufferDesc = CD3D11_BUFFER_DESC(
@@ -55,36 +78,12 @@ HRESULT DirectXTKHelloConst::CreateBuffers( int width, int height)
     m_indexBuffer = indexBufferTemp;
 
     // Create Constant Buffer
-    m_constantBuffer.Create(device);
+    m_constantBufferData.Create(device);
 
-    //m_boneBuffer.Create(device);
+ 
 
-    
-    // Set up Matrices
-    DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
-    DirectX::XMVECTOR eye = DirectX::XMVectorSet(2.0f, 2.0f, -10.0f, 0.0f);
-    DirectX::XMVECTOR focus = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-    DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-    DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixLookAtLH(eye, focus, up);
+   
 
-    float fov = DirectX::XMConvertToRadians(45.0f);
-    float aspect = static_cast<float>(width) / static_cast<float>(height);
-    float nearZ = 0.1f;
-    float farZ = 100.0f;
-    DirectX::XMMATRIX projMatrix = DirectX::XMMatrixPerspectiveFovLH(fov, aspect, nearZ, farZ);
-    
-  
-    m_constantBuffer.SetData(deviceResources->GetD3DDeviceContext(),);
-    /*
-      // マテリアルプロパティ
-      Material material = {};
-      material.Ambient = DirectX::XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
-      material.Diffuse = DirectX::XMFLOAT4(0.8f, 0.0f, 0.0f, 1.0f); // 赤
-      material.Specular = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-      material.Shininess = 32.0f;
-  //    m_materialbuffer.Create(deviceResources->GetD3DDevice());
-  */
-  // m_materialbuffer.SetData(deviceResources->GetD3DDeviceContext(), material);
-
+    m_constantBufferData.SetData(DR->GetD3DDeviceContext(), sceneCB);
     return S_OK;
 }
