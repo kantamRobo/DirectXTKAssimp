@@ -1,4 +1,7 @@
-float4 PSMain(PSInput input) : SV_TARGET
+#include "Shader.hlsli"
+
+
+float4 main(PSInput input) : SV_TARGET
 {
     return input.color;
 }
