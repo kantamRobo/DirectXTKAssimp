@@ -3,6 +3,7 @@
 #include "DirectXTKHelloConst.h"
 
 
+
 DirectXTKHelloConst::DirectXTKHelloConst(UINT width, UINT height, std::wstring name)
 {
 }
@@ -25,7 +26,74 @@ void DirectXTKHelloConst::OnUpdate(DX::DeviceResources* DR)
     DR->GetD3DDeviceContext()->PSSetConstantBuffers(0, 1, &buffer);
 }
 
+//シェーダー
 
+HRESULT DirectXTKHelloConst::CreateShaders(const DX::DeviceResources* deviceResources)
+{
+    //パイプラインステートの作成
+    auto device = deviceResources->GetD3DDevice();
+
+    auto context = deviceResources->GetD3DDeviceContext();
+
+    // 頂点シェーダーのコンパイル
+    Microsoft::WRL::ComPtr<ID3DBlob> pVSBlob;
+    Microsoft::WRL::ComPtr<ID3DBlob> perrrorBlob;
+    auto hr = D3DCompileFromFile(L"VertexShader.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_5_0", 0, 0, pVSBlob.GetAddressOf(), perrrorBlob.GetAddressOf());
+    if (FAILED(hr))
+    {
+        OutputDebugStringA(reinterpret_cast<const char*>(perrrorBlob->GetBufferPointer()));
+        return hr;
+    }
+
+    // 頂点シェーダーの作成
+    hr = device->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, m_vertexShader.GetAddressOf());
+    if (FAILED(hr))
+    {
+        OutputDebugStringA(reinterpret_cast<const char*>(perrrorBlob->GetBufferPointer()));
+        return hr;
+    }
+
+
+    // ピクセルシェーダーのコンパイル
+    Microsoft::WRL::ComPtr<ID3DBlob> pPSBlob;
+    hr = D3DCompileFromFile(L"PixelShader.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_5_0", 0, 0, pPSBlob.GetAddressOf(), nullptr);
+
+    if (FAILED(hr))
+    {
+        OutputDebugStringA(reinterpret_cast<const char*>(perrrorBlob->GetBufferPointer()));
+        return hr;
+    }
+
+    //ピクセルシェーダーの作成
+    hr = device->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, m_pixelShader.GetAddressOf());
+    if (FAILED(hr))
+    {
+        OutputDebugStringA(reinterpret_cast<const char*>(perrrorBlob->GetBufferPointer()));
+        return hr;
+    }
+    // 入力レイアウトの作成
+    D3D11_INPUT_ELEMENT_DESC layout[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        // { "BLENDWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        // { "BLENDINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+
+    };
+    UINT numElements = ARRAYSIZE(layout);
+
+    hr = device->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), m_modelInputLayout.GetAddressOf());
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+
+
+
+    return hr;
+}
 
 HRESULT DirectXTKHelloConst::CreateBuffers(DX::DeviceResources* DR,int width, int height)
 {
