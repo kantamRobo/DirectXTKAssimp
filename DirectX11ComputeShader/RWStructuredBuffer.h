@@ -1,5 +1,5 @@
 #pragma once
-struct RWStructuredBuffer
+struct rwStructuredBuffer
 {
 
 	UINT index;
