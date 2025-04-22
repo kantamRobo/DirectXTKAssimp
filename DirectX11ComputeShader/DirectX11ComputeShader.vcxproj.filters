@@ -19,6 +19,7 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="ComputeShader.h" />
+    <ClInclude Include="RWStructuredBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -28,6 +29,7 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="ComputeShader.cpp" />
+    <ClCompile Include="RWStructuredBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

@@ -34,3 +34,24 @@ void ComputeShader::CreateComputeShader(ID3D11Device* pd3dDevice)
 }
 
 
+void ComputeShader::CreateBuffer()
+{
+    D3D11_BUFFER_DESC desc = {};
+    desc.ByteWidth = sizeof(buffer);
+    desc.Usage = D3D11_USAGE_DYNAMIC;
+    desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    desc.CPUAccessFlags =
+        D3D11_CPU_ACCESS_WRITE;
+
+
+}
+
+void ComputeShader::CreateUAV(ID3D11Device* device)
+{
+    uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+    uavDesc.ViewDimension = D3D11_UAV_DIMENSION_UNKNOWN;
+    
+
+}
+
+
