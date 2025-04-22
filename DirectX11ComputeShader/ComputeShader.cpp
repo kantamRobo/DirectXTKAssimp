@@ -34,14 +34,37 @@ void ComputeShader::CreateComputeShader(ID3D11Device* pd3dDevice)
 }
 
 
-void ComputeShader::CreateBuffer()
+void ComputeShader::CreateBuffer(DX::DeviceResources* DR)
 {
+    auto device = DR->GetD3DDevice();
+    auto context = DR->GetD3DDeviceContext();
     D3D11_BUFFER_DESC desc = {};
-    desc.ByteWidth = sizeof(buffer);
-    desc.Usage = D3D11_USAGE_DYNAMIC;
-    desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    desc.CPUAccessFlags =
-        D3D11_CPU_ACCESS_WRITE;
+    desc.ByteWidth = sizeof(RWbuffer);
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS|D3D11_BIND_SHADER_RESOURCE;
+   
+    desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    desc.StructureByteStride = sizeof(RWStructuredBuffer);
+    
+    D3D11_SUBRESOURCE_DATA initData = {};
+    initData.pSysMem = &RWbuffer;
+
+    device->CreateBuffer(&desc, &initData, &buffer);
+    
+
+    //結果を表示する読み取り専用バッファの作成
+    D3D11_BUFFER_DESC readDesc = desc;
+    readDesc.Usage = D3D11_USAGE_STAGING;
+    readDesc.BindFlags = 0;
+    readDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    readDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+
+    device->CreateBuffer(&readDesc, nullptr, &ReadbackBuffer);
+
+    context->CopyResource(ReadbackBuffer, buffer);
+
+    D3D11_MAPPED_SUBRESOURCE mapped = {};
+    context->Map(ReadbackBuffer, 0, D3D11_MAP_READ, 0, &mapped);
 
 
 }
