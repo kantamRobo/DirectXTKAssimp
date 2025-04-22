@@ -44,4 +44,7 @@
       <Filter>Assets</Filter>
     </Manifest>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="ComputeShader.hlsl" />
+  </ItemGroup>
 </Project>

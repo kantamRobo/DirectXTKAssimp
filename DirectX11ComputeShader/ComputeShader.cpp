@@ -90,7 +90,7 @@ void ComputeShader::Dispatch(DX::DeviceResources* DR)
 
     D3D11_MAPPED_SUBRESOURCE mapped = {};
     context->Map(ReadbackBuffer, 0, D3D11_MAP_READ, 0, &mapped);
-    context->Unmap(ReadbackBuffer, 0);
+    //context->Unmap(ReadbackBuffer, 0);
 
 }
 

@@ -1,7 +1,8 @@
 #pragma once
-class RWStructuredBuffer
+struct RWStructuredBuffer
 {
 
-
+	UINT index;
+	float value;
 };
 
