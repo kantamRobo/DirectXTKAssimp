@@ -26,7 +26,7 @@ void ComputeShader::CreateShader(ID3D11Device* device)
 
 void ComputeShader::CreateComputeShader(ID3D11Device* pd3dDevice)
 {
-    ID3D11ComputeShader* g_pFinalPassCS = NULL;
+  
     ID3DBlob* pBlobFinalPassCS = nullptr;
     pd3dDevice->CreateComputeShader(pBlobFinalPassCS->GetBufferPointer(),
         pBlobFinalPassCS->GetBufferSize(),
@@ -61,10 +61,7 @@ void ComputeShader::CreateBuffer(DX::DeviceResources* DR)
 
     device->CreateBuffer(&readDesc, nullptr, &ReadbackBuffer);
 
-    context->CopyResource(ReadbackBuffer, buffer);
-
-    D3D11_MAPPED_SUBRESOURCE mapped = {};
-    context->Map(ReadbackBuffer, 0, D3D11_MAP_READ, 0, &mapped);
+    
 
 
 }
@@ -72,9 +69,28 @@ void ComputeShader::CreateBuffer(DX::DeviceResources* DR)
 void ComputeShader::CreateUAV(ID3D11Device* device)
 {
     uavDesc.Format = DXGI_FORMAT_UNKNOWN;
-    uavDesc.ViewDimension = D3D11_UAV_DIMENSION_UNKNOWN;
-    
+    uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+    uavDesc.Buffer.FirstElement = 0;
+    uavDesc.Buffer.NumElements = sizeof(RWbuffer);
+
+    device->CreateUnorderedAccessView(buffer, &uavDesc, &uav);
 
 }
 
+
+void ComputeShader::Dispatch(DX::DeviceResources* DR)
+{
+    auto context = DR->GetD3DDeviceContext();
+    // 6. バインドしてディスパッチ
+    context->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+    context->CSSetShader(g_pFinalPassCS, nullptr, 0);
+    context->Dispatch(sizeof(RWbuffer), 1, 1);
+//データ反映
+    context->CopyResource(ReadbackBuffer, buffer);
+
+    D3D11_MAPPED_SUBRESOURCE mapped = {};
+    context->Map(ReadbackBuffer, 0, D3D11_MAP_READ, 0, &mapped);
+    context->Unmap(ReadbackBuffer, 0);
+
+}
 
