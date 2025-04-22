@@ -24,6 +24,8 @@ void DirectXTKHelloConst::OnUpdate(DX::DeviceResources* DR)
     m_constantBufferData.SetData(DR->GetD3DDeviceContext(), sceneCB);
     auto buffer = m_constantBufferData.GetBuffer();
     DR->GetD3DDeviceContext()->PSSetConstantBuffers(0, 1, &buffer);
+    DR->GetD3DDeviceContext()->VSSetConstantBuffers(0, 1, &buffer); // ← これを追加
+
 }
 
 //シェーダー
@@ -71,16 +73,12 @@ HRESULT DirectXTKHelloConst::CreateShaders(const DX::DeviceResources* deviceReso
         OutputDebugStringA(reinterpret_cast<const char*>(perrrorBlob->GetBufferPointer()));
         return hr;
     }
-    // 入力レイアウトの作成
     D3D11_INPUT_ELEMENT_DESC layout[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        // { "BLENDWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        // { "BLENDINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-
+        { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
+
     UINT numElements = ARRAYSIZE(layout);
 
     hr = device->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), m_modelInputLayout.GetAddressOf());

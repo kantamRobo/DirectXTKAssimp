@@ -6,11 +6,8 @@
 #include <DeviceResources.h>
 #include <vector>
 #include <d3dcompiler.h>
-struct Vertex
-{
-    DirectX::XMFLOAT3 position;
-    DirectX::XMFLOAT4 color;
-};
+#include <VertexTypes.h>
+
 
 struct SceneConstantBuffer
 {
@@ -21,6 +18,7 @@ struct SceneConstantBuffer
 class DirectXTKHelloConst
 {
 public:
+    DirectXTKHelloConst() {};
     DirectXTKHelloConst(UINT width, UINT height, std::wstring name);
 
     void OnUpdate(DX::DeviceResources* DR);
@@ -29,7 +27,7 @@ public:
 
     HRESULT CreateBuffers(DX::DeviceResources* DR, int width, int height);
 
-    std::vector<DirectX::VertexPositionNormalColorTexture> vertices;
+    std::vector<DirectX::VertexPositionColor> vertices;
     std::vector<unsigned short> indices;
 private:
     static const UINT FrameCount = 2;
