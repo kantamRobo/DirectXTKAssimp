@@ -115,6 +115,7 @@ HRESULT DirectXTKHelloConst::CreateBuffers(DX::DeviceResources* DR,int width, in
               DirectX::XMFLOAT4(0.0f, 0.0f, -1.0f,1.0f)
              }
     };
+    indices = { 0, 1, 2 };
 
 
   
