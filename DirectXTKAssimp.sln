@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTKAssimpAnimation", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTKHelloConst", "DirectXTKHelloConst\DirectXTKHelloConst.vcxproj", "{019AEDD9-DA8E-4824-91B3-8E0F37328979}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectX11ComputeShader", "DirectX11ComputeShader\DirectX11ComputeShader.vcxproj", "{C26E5EE6-3A73-47AA-8120-66962BEC444D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -41,6 +43,14 @@ Global
 		{019AEDD9-DA8E-4824-91B3-8E0F37328979}.Release|x64.Build.0 = Release|x64
 		{019AEDD9-DA8E-4824-91B3-8E0F37328979}.Release|x86.ActiveCfg = Release|Win32
 		{019AEDD9-DA8E-4824-91B3-8E0F37328979}.Release|x86.Build.0 = Release|Win32
+		{C26E5EE6-3A73-47AA-8120-66962BEC444D}.Debug|x64.ActiveCfg = Debug|x64
+		{C26E5EE6-3A73-47AA-8120-66962BEC444D}.Debug|x64.Build.0 = Debug|x64
+		{C26E5EE6-3A73-47AA-8120-66962BEC444D}.Debug|x86.ActiveCfg = Debug|Win32
+		{C26E5EE6-3A73-47AA-8120-66962BEC444D}.Debug|x86.Build.0 = Debug|Win32
+		{C26E5EE6-3A73-47AA-8120-66962BEC444D}.Release|x64.ActiveCfg = Release|x64
+		{C26E5EE6-3A73-47AA-8120-66962BEC444D}.Release|x64.Build.0 = Release|x64
+		{C26E5EE6-3A73-47AA-8120-66962BEC444D}.Release|x86.ActiveCfg = Release|Win32
+		{C26E5EE6-3A73-47AA-8120-66962BEC444D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
