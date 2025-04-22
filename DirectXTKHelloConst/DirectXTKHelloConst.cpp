@@ -4,6 +4,8 @@
 
 
 
+
+
 DirectXTKHelloConst::DirectXTKHelloConst(UINT width, UINT height, std::wstring name)
 {
 }
@@ -95,15 +97,37 @@ HRESULT DirectXTKHelloConst::CreateShaders(const DX::DeviceResources* deviceReso
 
 HRESULT DirectXTKHelloConst::CreateBuffers(DX::DeviceResources* DR,int width, int height)
 {
+
+    // 例: 左下、右下、上頂点の三角形
+    vertices = {
+        // Vertex 1: 左下
+        { DirectX::XMFLOAT3(-0.5f, -0.5f, 0.0f),   // position
+          DirectX::XMFLOAT4(0.0f, 0.0f, -1.0f,1.0f)    // normal
+       }, 
+
+          // Vertex 2: 右下
+          { DirectX::XMFLOAT3(0.5f, -0.5f, 0.0f),
+            DirectX::XMFLOAT4(0.0f, 0.0f, -1.0f,1.0f)
+          },
+
+            // Vertex 3: 上
+            { DirectX::XMFLOAT3(0.0f, 0.5f, 0.0f),
+              DirectX::XMFLOAT4(0.0f, 0.0f, -1.0f,1.0f)
+             }
+    };
+
+
+  
     auto device = DR->GetD3DDevice();
 
     // Vertex Buffer Description
     auto vertexBufferDesc = CD3D11_BUFFER_DESC(
-        sizeof(DirectX::VertexPositionNormalColorTexture) * vertices.size(), // Total size
+        sizeof(DirectX::VertexPositionColor) * vertices.size(), // Total size
         D3D11_BIND_VERTEX_BUFFER,                                           // Bind as vertex buffer
         D3D11_USAGE_DYNAMIC,                                                // Dynamic usage
         D3D11_CPU_ACCESS_WRITE                                              // Allow CPU write access
     );
+    
 
     // Initial data for Vertex Buffer
     D3D11_SUBRESOURCE_DATA vertexData = {};
