@@ -37,6 +37,12 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="DirectXTKHelloConst.cpp" />
+    <ClCompile Include="TestHierarchy.cpp">
+      <Filter>GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Polygon.cpp">
+      <Filter>GameObject</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
