@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "VertexTypes.h"
+
 #include "DirectXTKHelloConst.h"
 
 
@@ -16,9 +16,9 @@ void DirectXTKHelloConst::OnUpdate(DX::DeviceResources* DR)
     const float translationSpeed = 0.005f;
     const float offsetBounds = 1.25f;
 
-   
+
     sceneCB.offset.x += translationSpeed;
-    
+
     if (sceneCB.offset.x > offsetBounds)
     {
         sceneCB.offset.x = -offsetBounds;
@@ -147,7 +147,7 @@ HRESULT DirectXTKHelloConst::CreateShaders(const DX::DeviceResources* deviceReso
     return hr;
 }
 
-HRESULT DirectXTKHelloConst::CreateBuffers(DX::DeviceResources* DR,int width, int height)
+HRESULT DirectXTKHelloConst::CreateBuffers(DX::DeviceResources* DR, int width, int height)
 {
 
     vertices = {
@@ -159,7 +159,7 @@ HRESULT DirectXTKHelloConst::CreateBuffers(DX::DeviceResources* DR,int width, in
     indices = { 0, 1, 2 };
 
 
-  
+
     auto device = DR->GetD3DDevice();
 
     // Vertex Buffer Description
@@ -169,7 +169,7 @@ HRESULT DirectXTKHelloConst::CreateBuffers(DX::DeviceResources* DR,int width, in
         D3D11_USAGE_DYNAMIC,                                                // Dynamic usage
         D3D11_CPU_ACCESS_WRITE                                              // Allow CPU write access
     );
-    
+
 
     // Initial data for Vertex Buffer
     D3D11_SUBRESOURCE_DATA vertexData = {};
@@ -212,9 +212,9 @@ HRESULT DirectXTKHelloConst::CreateBuffers(DX::DeviceResources* DR,int width, in
     // Create Constant Buffer
     m_constantBufferData.Create(device);
 
- 
 
-   
+
+
 
     m_constantBufferData.SetData(DR->GetD3DDeviceContext(), sceneCB);
     return S_OK;

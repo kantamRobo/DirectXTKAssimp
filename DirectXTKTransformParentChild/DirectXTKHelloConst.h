@@ -45,7 +45,7 @@ private:
     void OnUpdate();
     SceneConstantBuffer sceneCB;
     DirectX::ConstantBuffer<SceneConstantBuffer>m_constantBufferData;
-   
+
 };
 
 
