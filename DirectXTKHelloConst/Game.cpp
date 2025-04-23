@@ -79,7 +79,7 @@ void Game::Render()
     // TODO: Add your rendering code here.
     context;
     directxtkhelloconst.OnUpdate(this->m_deviceResources.get());
-
+    directxtkhelloconst.Draw(this->m_deviceResources.get());
     m_deviceResources->PIXEndEvent();
 
     // Show the new frame.

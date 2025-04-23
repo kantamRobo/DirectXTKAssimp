@@ -30,6 +30,48 @@ void DirectXTKHelloConst::OnUpdate(DX::DeviceResources* DR)
 
 }
 
+
+
+void DirectXTKHelloConst::Draw(const DX::DeviceResources* DR) {
+    if (vertices.empty() || indices.empty()) {
+        OutputDebugStringA("Vertex or index buffer is empty.\n");
+        return;
+    }
+
+    auto context = DR->GetD3DDeviceContext();
+
+    // Input Layout 設定
+    context->IASetInputLayout(m_modelInputLayout.Get());
+
+    // インデックスバッファの設定
+    auto indexBuffer = static_cast<ID3D11Buffer*>(m_indexBuffer.Get());
+    // Draw() の中
+    context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+    // 頂点バッファの設定
+    UINT stride = sizeof(DirectX::VertexPositionColor);
+    UINT offset = 0;
+    auto vertexBuffer = static_cast<ID3D11Buffer*>(m_vertexBuffer.Get());
+    context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &stride, &offset);
+    // プリミティブトポロジー設定
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    auto buffer = m_constantBufferData.GetBuffer();
+    context->VSSetConstantBuffers(0, 1, &buffer);
+    context->PSSetConstantBuffers(0, 1, &buffer);
+
+    // シェーダー設定
+    context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
+    context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
+    //context->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+    context->RSSetState(m_rasterizerState.Get());
+
+    //context->PSSetShaderResources(0, 1, m_modelsrv.GetAddressOf());
+    // 描画コール   
+    context->DrawIndexed(static_cast<UINT>(indices.size()), 0, 0);
+}
+
+
 //シェーダー
 
 HRESULT DirectXTKHelloConst::CreateShaders(const DX::DeviceResources* deviceResources)
@@ -88,6 +130,16 @@ HRESULT DirectXTKHelloConst::CreateShaders(const DX::DeviceResources* deviceReso
     {
         return hr;
     }
+    if (!m_rasterizerState)
+    {
+        D3D11_RASTERIZER_DESC rasterDesc = {};
+        rasterDesc.FillMode = D3D11_FILL_SOLID;
+        rasterDesc.CullMode = D3D11_CULL_NONE; // ← バックフェイスカリングを一時的にオフに
+        rasterDesc.FrontCounterClockwise = false;
+        rasterDesc.DepthClipEnable = true;
+
+        device->CreateRasterizerState(&rasterDesc, &m_rasterizerState);
+    }
 
 
 
@@ -98,23 +150,12 @@ HRESULT DirectXTKHelloConst::CreateShaders(const DX::DeviceResources* deviceReso
 HRESULT DirectXTKHelloConst::CreateBuffers(DX::DeviceResources* DR,int width, int height)
 {
 
-    // 例: 左下、右下、上頂点の三角形
     vertices = {
-        // Vertex 1: 左下
-        { DirectX::XMFLOAT3(-0.5f, -0.5f, 0.0f),   // position
-          DirectX::XMFLOAT4(0.0f, 0.0f, -1.0f,1.0f)    // normal
-       }, 
-
-          // Vertex 2: 右下
-          { DirectX::XMFLOAT3(0.5f, -0.5f, 0.0f),
-            DirectX::XMFLOAT4(0.0f, 0.0f, -1.0f,1.0f)
-          },
-
-            // Vertex 3: 上
-            { DirectX::XMFLOAT3(0.0f, 0.5f, 0.0f),
-              DirectX::XMFLOAT4(0.0f, 0.0f, -1.0f,1.0f)
-             }
+     { DirectX::XMFLOAT3(-0.5f, -0.5f, 0.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) }, // 赤
+     { DirectX::XMFLOAT3(0.5f, -0.5f, 0.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) }, // 緑
+     { DirectX::XMFLOAT3(0.0f,  0.5f, 0.0f), DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) }  // 青
     };
+
     indices = { 0, 1, 2 };
 
 

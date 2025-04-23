@@ -11,7 +11,7 @@
 
 struct SceneConstantBuffer
 {
-    DirectX::XMFLOAT4 offset;
+    DirectX::XMFLOAT4 offset = { 0,0,0,1 };
     float padding[60]; // Padding so the constant buffer is 256-byte aligned.
 };
 
@@ -23,17 +23,19 @@ public:
 
     void OnUpdate(DX::DeviceResources* DR);
 
+    void Draw(const DX::DeviceResources* DR);
+
     HRESULT CreateShaders(const DX::DeviceResources* deviceResources);
 
     HRESULT CreateBuffers(DX::DeviceResources* DR, int width, int height);
 
     std::vector<DirectX::VertexPositionColor> vertices;
-    std::vector<unsigned short> indices;
+    std::vector<UINT> indices;
 private:
     static const UINT FrameCount = 2;
 
-    Microsoft::WRL::ComPtr<ID3D11Resource> m_vertexBuffer;
-    Microsoft::WRL::ComPtr<ID3D11Resource> m_indexBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> m_vertexBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> m_indexBuffer;
 
     //シェーダーの作成
     Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShader;
