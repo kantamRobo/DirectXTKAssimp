@@ -9,6 +9,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTKAssimpAnimation", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTKHelloConst", "DirectXTKHelloConst\DirectXTKHelloConst.vcxproj", "{019AEDD9-DA8E-4824-91B3-8E0F37328979}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectX11ComputeShader", "DirectX11ComputeShader\DirectX11ComputeShader.vcxproj", "{C26E5EE6-3A73-47AA-8120-66962BEC444D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTKTransformParentChild", "DirectXTKTransformParentChild\DirectXTKTransformParentChild.vcxproj", "{2FD1AA81-1334-4408-B68B-D4B02762D351}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "D3D11HelloTesselllation", "D3D11HelloTesselllation\D3D11HelloTesselllation.vcxproj", "{0E5E14D1-B9F4-49FC-9A90-8056E2B9A99F}"
 EndProject
 Global
@@ -43,6 +47,22 @@ Global
 		{019AEDD9-DA8E-4824-91B3-8E0F37328979}.Release|x64.Build.0 = Release|x64
 		{019AEDD9-DA8E-4824-91B3-8E0F37328979}.Release|x86.ActiveCfg = Release|Win32
 		{019AEDD9-DA8E-4824-91B3-8E0F37328979}.Release|x86.Build.0 = Release|Win32
+		{C26E5EE6-3A73-47AA-8120-66962BEC444D}.Debug|x64.ActiveCfg = Debug|x64
+		{C26E5EE6-3A73-47AA-8120-66962BEC444D}.Debug|x64.Build.0 = Debug|x64
+		{C26E5EE6-3A73-47AA-8120-66962BEC444D}.Debug|x86.ActiveCfg = Debug|Win32
+		{C26E5EE6-3A73-47AA-8120-66962BEC444D}.Debug|x86.Build.0 = Debug|Win32
+		{C26E5EE6-3A73-47AA-8120-66962BEC444D}.Release|x64.ActiveCfg = Release|x64
+		{C26E5EE6-3A73-47AA-8120-66962BEC444D}.Release|x64.Build.0 = Release|x64
+		{C26E5EE6-3A73-47AA-8120-66962BEC444D}.Release|x86.ActiveCfg = Release|Win32
+		{C26E5EE6-3A73-47AA-8120-66962BEC444D}.Release|x86.Build.0 = Release|Win32
+		{2FD1AA81-1334-4408-B68B-D4B02762D351}.Debug|x64.ActiveCfg = Debug|x64
+		{2FD1AA81-1334-4408-B68B-D4B02762D351}.Debug|x64.Build.0 = Debug|x64
+		{2FD1AA81-1334-4408-B68B-D4B02762D351}.Debug|x86.ActiveCfg = Debug|Win32
+		{2FD1AA81-1334-4408-B68B-D4B02762D351}.Debug|x86.Build.0 = Debug|Win32
+		{2FD1AA81-1334-4408-B68B-D4B02762D351}.Release|x64.ActiveCfg = Release|x64
+		{2FD1AA81-1334-4408-B68B-D4B02762D351}.Release|x64.Build.0 = Release|x64
+		{2FD1AA81-1334-4408-B68B-D4B02762D351}.Release|x86.ActiveCfg = Release|Win32
+		{2FD1AA81-1334-4408-B68B-D4B02762D351}.Release|x86.Build.0 = Release|Win32
 		{0E5E14D1-B9F4-49FC-9A90-8056E2B9A99F}.Debug|x64.ActiveCfg = Debug|x64
 		{0E5E14D1-B9F4-49FC-9A90-8056E2B9A99F}.Debug|x64.Build.0 = Debug|x64
 		{0E5E14D1-B9F4-49FC-9A90-8056E2B9A99F}.Debug|x86.ActiveCfg = Debug|Win32

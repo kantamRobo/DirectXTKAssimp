@@ -63,7 +63,7 @@ namespace education {
 		Microsoft::WRL::ComPtr<ID3D11Resource> m_textureBuffer;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_modelsrv;
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
-		std::vector<DirectX::VertexPositionNormalColorTexture> vertices;
+		std::vector<DirectX::VertexPositionNormalTangentColorTextureSkinning> vertices;
 		std::vector<unsigned short> indices;
 		DirectX::ConstantBuffer<SceneCB> m_constantBuffer;
 		DirectX::ConstantBuffer<Bone> m_boneBuffer;

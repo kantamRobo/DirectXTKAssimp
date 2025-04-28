@@ -78,8 +78,7 @@ void Game::Render()
 
     // TODO: Add your rendering code here.
     context;
-    directxtkhelloconst.OnUpdate(this->m_deviceResources.get());
-    directxtkhelloconst.Draw(this->m_deviceResources.get());
+
     m_deviceResources->PIXEndEvent();
 
     // Show the new frame.
@@ -170,9 +169,6 @@ void Game::CreateDeviceDependentResources()
 
     // TODO: Initialize device dependent objects here (independent of window size).
     device;
-
-    directxtkhelloconst.CreateBuffers(m_deviceResources.get(), 800, 600);
-    directxtkhelloconst.CreateShaders(m_deviceResources.get());
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
