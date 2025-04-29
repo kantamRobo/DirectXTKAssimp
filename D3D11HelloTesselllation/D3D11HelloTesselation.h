@@ -23,6 +23,7 @@ public:
     Microsoft::WRL::ComPtr<ID3D11PixelShader> ps;
     Microsoft::WRL::ComPtr<ID3D11HullShader> hs;
     Microsoft::WRL::ComPtr<ID3D11DomainShader> ds;
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerState;
     void Render(DX::DeviceResources* DR)
     {
 
@@ -49,6 +50,7 @@ public:
         UINT stride = sizeof(float) * 3;
         UINT offset = 0;
         context->IASetVertexBuffers(0, 1, vertexBuffer.GetAddressOf(), &stride, &offset);
+        context->RSSetState(m_rasterizerState.Get());
 
         // ドロー
         context->Draw(3, 0);
@@ -108,7 +110,16 @@ public:
         bd.ByteWidth = sizeof(CB_TESS);
         bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
         auto result = device->CreateBuffer(&bd, nullptr, g_cbTessFactor.ReleaseAndGetAddressOf());
+        if (!m_rasterizerState)
+        {
+            D3D11_RASTERIZER_DESC rasterDesc = {};
+            rasterDesc.FillMode = D3D11_FILL_SOLID;
+            rasterDesc.CullMode = D3D11_CULL_NONE; // ← バックフェイスカリングを一時的にオフに
+            rasterDesc.FrontCounterClockwise = false;
+            rasterDesc.DepthClipEnable = true;
 
+            device->CreateRasterizerState(&rasterDesc, m_rasterizerState.ReleaseAndGetAddressOf());
+        }
         return S_OK;
     }
 
