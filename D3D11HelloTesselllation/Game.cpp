@@ -5,12 +5,13 @@
 #include "pch.h"
 #include "Game.h"
 
+#include "D3D11HelloTesselation.h"
 extern void ExitGame() noexcept;
 
 using namespace DirectX;
 
 using Microsoft::WRL::ComPtr;
-
+D3D11HelloTessellelation d3d11hellotesselation;
 Game::Game() noexcept(false)
 {
     m_deviceResources = std::make_unique<DX::DeviceResources>();
@@ -78,7 +79,7 @@ void Game::Render()
 
     // TODO: Add your rendering code here.
     context;
-
+    d3d11hellotesselation.Render(m_deviceResources.get());
     m_deviceResources->PIXEndEvent();
 
     // Show the new frame.
@@ -169,6 +170,7 @@ void Game::CreateDeviceDependentResources()
 
     // TODO: Initialize device dependent objects here (independent of window size).
     device;
+    d3d11hellotesselation.Init(m_deviceResources.get());
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.

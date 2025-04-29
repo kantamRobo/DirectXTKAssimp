@@ -12,7 +12,7 @@ struct CB_TESS
 };
 class D3D11HelloTessellelation
 {
-
+public:
     // シェーダーコンパイル
     Microsoft::WRL::ComPtr<ID3DBlob> vsBlob, hsBlob, dsBlob, psBlob, errBlob;
     Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout = nullptr;
