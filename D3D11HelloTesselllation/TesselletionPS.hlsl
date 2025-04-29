@@ -35,44 +35,11 @@ struct HSConst
     float InsideTess : SV_InsideTessFactor; // 内部
 };
 
-[domain("tri")]
-[partitioning("fractional_odd")]
-[outputtopology("triangle_cw")]
-[outputcontrolpoints(3)]
-[patchconstantfunc("HSConstFunc")]
-HSOut HSMain(InputPatch<VSOut, 3> patch, uint cid : SV_OutputControlPointID)
-{
-    HSOut o;
-    o.Pos = patch[cid].Pos;
-    return o;
-}
-
-HSConst HSConstFunc(InputPatch<VSOut, 3> patch)
-{
-    HSConst o;
-    o.EdgeTess[0] = Outer;
-    o.EdgeTess[1] = Outer;
-    o.EdgeTess[2] = Outer;
-    o.InsideTess = Inner;
-    return o;
-}
-
 // DS: バリセンタリック補間
 struct DSOut
 {
     float4 Pos : SV_POSITION;
 };
-[domain("tri")]
-DSOut DSMain(HSConst hc, const OutputPatch<HSOut, 3> patch, float3 bary : SV_DomainLocation)
-{
-    DSOut o;
-    float3 p = patch[0].Pos * bary.x
-        + patch[1].Pos * bary.y
-        + patch[2].Pos * bary.z;
-    // そのままクリップ空間と仮定（射影行列などは省略）
-    o.Pos = float4(p, 1.0f);
-    return o;
-}
 
 // PS: 単色
 float4 PSMain(DSOut i) : SV_Target

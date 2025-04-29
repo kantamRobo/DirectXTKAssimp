@@ -170,7 +170,8 @@ void Game::CreateDeviceDependentResources()
 
     // TODO: Initialize device dependent objects here (independent of window size).
     device;
-    d3d11hellotesselation.Init(m_deviceResources.get());
+  auto result=  d3d11hellotesselation.Init(m_deviceResources.get());
+
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.

@@ -66,20 +66,20 @@ public:
         flags |= D3DCOMPILE_DEBUG;
 #endif
         // 同一ファイル内に各ステージが定義されているので、エントリで切り替え
-        if (FAILED(D3DCompileFromFile(L"Tessellation.hlsl", nullptr, nullptr,
+        if (FAILED(D3DCompileFromFile(L"TesselletionVS.hlsl", nullptr, nullptr,
             "VSMain", "vs_5_0", flags, 0, &vsBlob, &errBlob))) return E_FAIL;
-        if (FAILED(D3DCompileFromFile(L"Tessellation.hlsl", nullptr, nullptr,
+        if (FAILED(D3DCompileFromFile(L"TesselletionHS.hlsl", nullptr, nullptr,
             "HSMain", "hs_5_0", flags, 0, &hsBlob, &errBlob))) return E_FAIL;
-        if (FAILED(D3DCompileFromFile(L"Tessellation.hlsl", nullptr, nullptr,
+        if (FAILED(D3DCompileFromFile(L"TesselletionDS.hlsl", nullptr, nullptr,
             "DSMain", "ds_5_0", flags, 0, &dsBlob, &errBlob))) return E_FAIL;
-        if (FAILED(D3DCompileFromFile(L"Tessellation.hlsl", nullptr, nullptr,
+        if (FAILED(D3DCompileFromFile(L"TesselletionPS.hlsl", nullptr, nullptr,
             "PSMain", "ps_5_0", flags, 0, &psBlob, &errBlob))) return E_FAIL;
 
         // シェーダー生成
-        device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, vs.ReleaseAndGetAddressOf());
-        device->CreateHullShader(hsBlob->GetBufferPointer(), hsBlob->GetBufferSize(), nullptr, hs.ReleaseAndGetAddressOf());
-        device->CreateDomainShader(dsBlob->GetBufferPointer(), dsBlob->GetBufferSize(), nullptr, ds.ReleaseAndGetAddressOf());
-        device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, ps.ReleaseAndGetAddressOf());
+        auto resultVS = device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, vs.ReleaseAndGetAddressOf());
+        auto resultHS = device->CreateHullShader(hsBlob->GetBufferPointer(), hsBlob->GetBufferSize(), nullptr, hs.ReleaseAndGetAddressOf());
+        auto resultDS = device->CreateDomainShader(dsBlob->GetBufferPointer(), dsBlob->GetBufferSize(), nullptr, ds.ReleaseAndGetAddressOf());
+        auto resultPS = device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, ps.ReleaseAndGetAddressOf());
 
         // 入力レイアウト (VS の input)
         D3D11_INPUT_ELEMENT_DESC ie[] = {
@@ -107,7 +107,7 @@ public:
         bd.Usage = D3D11_USAGE_DEFAULT;
         bd.ByteWidth = sizeof(CB_TESS);
         bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        device->CreateBuffer(&bd, nullptr, g_cbTessFactor.ReleaseAndGetAddressOf());
+        auto result = device->CreateBuffer(&bd, nullptr, g_cbTessFactor.ReleaseAndGetAddressOf());
 
         return S_OK;
     }
