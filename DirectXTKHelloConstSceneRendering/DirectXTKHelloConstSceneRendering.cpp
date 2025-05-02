@@ -56,9 +56,13 @@ void DirectXTKHelloConstSceneRendering::Draw(const DX::DeviceResources* DR) {
     // プリミティブトポロジー設定
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    auto buffer = m_constantBufferData.GetBuffer();
-    context->VSSetConstantBuffers(0, 1, &buffer);
-    context->PSSetConstantBuffers(0, 1, &buffer);
+    auto constantbuffer = m_constantBufferData.GetBuffer();
+    auto scenebuffer = m_SceneBuffer.GetBuffer();
+    context->VSSetConstantBuffers(0, 1, &scenebuffer);
+    context->PSSetConstantBuffers(0, 1, &scenebuffer);
+    context->VSSetConstantBuffers(0, 1, &constantbuffer);
+    context->PSSetConstantBuffers(0, 1, &constantbuffer);
+    
 
     // シェーダー設定
     context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
