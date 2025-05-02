@@ -6,7 +6,7 @@
 
 #include "DeviceResources.h"
 #include "StepTimer.h"
-
+#include "DirectXTKHelloConstSceneRendering.h"
 
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
@@ -43,7 +43,7 @@ public:
     void OnWindowSizeChanged(int width, int height);
 
     // Properties
-    void GetDefaultSize( int& width, int& height ) const noexcept;
+    void GetDefaultSize(int& width, int& height) const noexcept;
 
 private:
 
@@ -60,4 +60,5 @@ private:
 
     // Rendering loop timer.
     DX::StepTimer                           m_timer;
+    DirectXTKHelloConstSceneRendering directxtkhelloconst;
 };
