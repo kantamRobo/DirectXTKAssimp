@@ -15,6 +15,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTKTransformParentChi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "D3D11HelloTesselllation", "D3D11HelloTesselllation\D3D11HelloTesselllation.vcxproj", "{0E5E14D1-B9F4-49FC-9A90-8056E2B9A99F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTKHelloConstSceneRendering", "DirectXTKHelloConstSceneRendering\DirectXTKHelloConstSceneRendering.vcxproj", "{878AC40C-F8F8-4850-87C3-9E4C38559FBF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -71,6 +73,14 @@ Global
 		{0E5E14D1-B9F4-49FC-9A90-8056E2B9A99F}.Release|x64.Build.0 = Release|x64
 		{0E5E14D1-B9F4-49FC-9A90-8056E2B9A99F}.Release|x86.ActiveCfg = Release|Win32
 		{0E5E14D1-B9F4-49FC-9A90-8056E2B9A99F}.Release|x86.Build.0 = Release|Win32
+		{878AC40C-F8F8-4850-87C3-9E4C38559FBF}.Debug|x64.ActiveCfg = Debug|x64
+		{878AC40C-F8F8-4850-87C3-9E4C38559FBF}.Debug|x64.Build.0 = Debug|x64
+		{878AC40C-F8F8-4850-87C3-9E4C38559FBF}.Debug|x86.ActiveCfg = Debug|Win32
+		{878AC40C-F8F8-4850-87C3-9E4C38559FBF}.Debug|x86.Build.0 = Debug|Win32
+		{878AC40C-F8F8-4850-87C3-9E4C38559FBF}.Release|x64.ActiveCfg = Release|x64
+		{878AC40C-F8F8-4850-87C3-9E4C38559FBF}.Release|x64.Build.0 = Release|x64
+		{878AC40C-F8F8-4850-87C3-9E4C38559FBF}.Release|x86.ActiveCfg = Release|Win32
+		{878AC40C-F8F8-4850-87C3-9E4C38559FBF}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
