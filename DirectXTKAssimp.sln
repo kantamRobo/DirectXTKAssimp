@@ -17,6 +17,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "D3D11HelloTesselllation", "
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTKHelloConstSceneRendering", "DirectXTKHelloConstSceneRendering\DirectXTKHelloConstSceneRendering.vcxproj", "{878AC40C-F8F8-4850-87C3-9E4C38559FBF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirecctXTK_Winsock2_RenderFarmTest_SimplePolygon_Server", "DirecctXTK_Winsock2_RenderFarmTest_SimplePolygon\DirecctXTK_Winsock2_RenderFarmTest_SimplePolygon.vcxproj", "{A16F1FB9-614B-4261-B545-B133F65D0948}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -81,6 +83,14 @@ Global
 		{878AC40C-F8F8-4850-87C3-9E4C38559FBF}.Release|x64.Build.0 = Release|x64
 		{878AC40C-F8F8-4850-87C3-9E4C38559FBF}.Release|x86.ActiveCfg = Release|Win32
 		{878AC40C-F8F8-4850-87C3-9E4C38559FBF}.Release|x86.Build.0 = Release|Win32
+		{A16F1FB9-614B-4261-B545-B133F65D0948}.Debug|x64.ActiveCfg = Debug|x64
+		{A16F1FB9-614B-4261-B545-B133F65D0948}.Debug|x64.Build.0 = Debug|x64
+		{A16F1FB9-614B-4261-B545-B133F65D0948}.Debug|x86.ActiveCfg = Debug|Win32
+		{A16F1FB9-614B-4261-B545-B133F65D0948}.Debug|x86.Build.0 = Debug|Win32
+		{A16F1FB9-614B-4261-B545-B133F65D0948}.Release|x64.ActiveCfg = Release|x64
+		{A16F1FB9-614B-4261-B545-B133F65D0948}.Release|x64.Build.0 = Release|x64
+		{A16F1FB9-614B-4261-B545-B133F65D0948}.Release|x86.ActiveCfg = Release|Win32
+		{A16F1FB9-614B-4261-B545-B133F65D0948}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
