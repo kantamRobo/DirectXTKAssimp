@@ -39,6 +39,12 @@
 #include <DirectXMath.h>
 #include <DirectXColors.h>
 
+#include "DirectXHelpers.h"
+#include "CommonStates.h"
+#include "Effects.h"
+#include "PrimitiveBatch.h"
+#include <VertexTypes.h>
+#include <DirectXPackedVector.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -50,7 +56,6 @@
 #include <stdexcept>
 #include <system_error>
 #include <tuple>
-
 #ifdef _DEBUG
 #include <dxgidebug.h>
 #endif

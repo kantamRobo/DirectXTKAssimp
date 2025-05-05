@@ -2,12 +2,12 @@
 #include "pch.h"
 #include "Game.h"
 #include <iostream>
-
+#include <SimpleMath.h>
 extern void ExitGame() noexcept;
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
-
+using namespace DirectX::SimpleMath;
 Game::Game() noexcept(false)
 {
     m_deviceResources = std::make_unique<DX::DeviceResources>();
@@ -45,22 +45,14 @@ void Game::Render()
     auto context = m_deviceResources->GetD3DDeviceContext();
 
     // 受信したコマンドで三角形描画
-    m_states->Apply(context);  // Blend/Depth/RS は m_effect->Apply 内で統一可
+ 
     m_effect->Apply(context);
     context->IASetInputLayout(m_inputLayout.Get());
 
-    VertexType v1(
-        XMFLOAT3(m_cmd.vertices[0][0], m_cmd.vertices[0][1], m_cmd.vertices[0][2]),
-        XMCOLOR(m_cmd.color[0], m_cmd.color[1], m_cmd.color[2], 1.0f)
-    );
-    VertexType v2(
-        XMFLOAT3(m_cmd.vertices[1][0], m_cmd.vertices[1][1], m_cmd.vertices[1][2]),
-        XMCOLOR(m_cmd.color[0], m_cmd.color[1], m_cmd.color[2], 1.0f)
-    );
-    VertexType v3(
-        XMFLOAT3(m_cmd.vertices[2][0], m_cmd.vertices[2][1], m_cmd.vertices[2][2]),
-        XMCOLOR(m_cmd.color[0], m_cmd.color[1], m_cmd.color[2], 1.0f)
-    );
+
+    VertexPositionColor v1(Vector3(0.f, 0.5f, 0.5f), Colors::Yellow);
+    VertexPositionColor v2(Vector3(0.5f, -0.5f, 0.5f), Colors::Yellow);
+    VertexPositionColor v3(Vector3(-0.5f, -0.5f, 0.5f), Colors::Yellow);
 
     m_batch->Begin();
     m_batch->DrawTriangle(v1, v2, v3);
@@ -85,9 +77,7 @@ void Game::Clear()
     context->OMSetRenderTargets(1, &rtv, dsv);
     context->RSSetViewports(1, &vp);
 
-    m_states->Reset();
-    m_effect->Reset();
-    m_batch->Reset();
+    
 
     m_deviceResources->PIXEndEvent();
 }
@@ -96,19 +86,19 @@ void Game::CreateDeviceDependentResources()
 {
     auto device = m_deviceResources->GetD3DDevice();
     // DirectXTK 初期化
-    m_states = std::make_unique<CommonStates>(device);
-    m_effect = std::make_unique<BasicEffect>(device);
+    m_states = std::make_unique<DirectX::CommonStates>(device);
+    m_effect = std::make_unique< DirectX::BasicEffect>(device);
     m_effect->SetVertexColorEnabled(true);
 
     DX::ThrowIfFailed(
-        CreateInputLayoutFromEffect<VertexType>(device, m_effect.get(),
+        DirectX::CreateInputLayoutFromEffect<VertexType>(device, m_effect.get(),
             m_inputLayout.ReleaseAndGetAddressOf())
     );
 
     InitNetwork();  // ← ここでサーバーへ接続、コマンドを受信
 
     auto context = m_deviceResources->GetD3DDeviceContext();
-    m_batch = std::make_unique<PrimitiveBatch<VertexType>>(context);
+    m_batch = std::make_unique<DirectX::PrimitiveBatch<VertexType>>(context);
 }
 
 void Game::CreateWindowSizeDependentResources()

@@ -1,7 +1,9 @@
 // Server.cpp
+#include "pch.h"
 #include <winsock2.h>
 #include <iostream>
 #include "DrawCommand.h"
+
 #pragma comment(lib, "ws2_32.lib")
 
 int main()
