@@ -94,8 +94,17 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmd) {
     swap->GetBuffer(0, IID_PPV_ARGS(&backBuf));
     ID3D11RenderTargetView* rtv = nullptr;
     dev->CreateRenderTargetView(backBuf, nullptr, &rtv);
-    backBuf->Release();
-
+    //backBuf->Release();
+    // ―― ここを追加 ――
+    // レンダーターゲットを出力マージステージにバインド
+    ctx->OMSetRenderTargets(1, &rtv, nullptr);
+    // ビューポートを設定
+    D3D11_VIEWPORT vp = {};
+    vp.TopLeftX = 0;      vp.TopLeftY = 0;
+    vp.Width = 800.0f; vp.Height = 600.0f;
+    vp.MinDepth = 0.0f;   vp.MaxDepth = 1.0f;
+    ctx->RSSetViewports(1, &vp);
+    // ―― ここまで追加 ――
     // --- シェーダーコンパイル & 作成 ---
     ID3D11VertexShader* vs = nullptr;
     ID3D11PixelShader* ps = nullptr;
