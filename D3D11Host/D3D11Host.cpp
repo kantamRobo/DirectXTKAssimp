@@ -179,7 +179,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmd) {//ここがWinM
             // バックバッファに直接コピー
             ctx->UpdateSubresource(backBuf, 0, nullptr,
                 pixelData, WIDTH * 4, 0);
-
+            ctx->OMSetRenderTargets(1, &rtv, nullptr);
             // 表示
             swap->Present(1, 0);
         }
