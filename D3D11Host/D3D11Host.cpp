@@ -4,6 +4,8 @@
 #include <d3d11.h>
 #pragma comment(lib, "Ws2_32.lib")
 
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dxgi.lib")
 // 送りたい三角形の頂点（Z = 0.0f）
 struct Vertex {
     float x, y, z;
@@ -149,13 +151,30 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmd) {//ここがWinM
         else {
             // サーバーからRGBA8フレームを受信
             int received = 0;
-
-    //スワップチェーンとホスト側のフレームバッファの追加
             while (received < frameSize) {
-                int r = recv(sock, pixelData + received, frameSize - received, MSG_WAITALL);
-                if (r <= 0) break;  // エラー or 切断
-                received += r;
+                int r = recv(sock,
+                    pixelData + received,
+                    frameSize - received,
+                    0 /* MSG_WAITALL を外す */);
+                if (r > 0) {
+                    received += r;
+                }
+                else if (r == 0) {
+                    // 接続がクリーンに切断された
+                    OutputDebugStringA("recv: connection closed by peer\n");
+                    break;
+                }
+                else { // r == SOCKET_ERROR
+                    int err = WSAGetLastError();
+                    char buf[128];
+                    sprintf_s(buf,
+                        "recv failed: WSAGetLastError() = %d\n",
+                        err);
+                    OutputDebugStringA(buf);
+                    break;
+                }
             }
+
             if (received < frameSize) break; // 切断されたらループ抜け
             // バックバッファに直接コピー
             ctx->UpdateSubresource(backBuf, 0, nullptr,

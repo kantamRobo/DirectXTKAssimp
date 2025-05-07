@@ -4,9 +4,11 @@
 #include <ws2tcpip.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
+#include <dxgi.h>
 #include <iostream>
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "D3DCompiler.lib")
 
 static const int WIDTH = 800;
@@ -40,20 +42,47 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmd) {
     addr.sin_port = htons(9000);
     bind(listenSock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
     listen(listenSock, SOMAXCONN);
-
-
-
-
     SOCKET client = accept(listenSock, nullptr, nullptr);
 
     // --- 頂点データ受信 ---
     int count = 0;
-    Vertex* vertices = new Vertex[count];
-
-    recv(client, reinterpret_cast<char*>(&count), sizeof(count), MSG_WAITALL);
-    struct Vertex { float x, y, z; };
+    if (recv(client, reinterpret_cast<char*>(&count), sizeof(count), MSG_WAITALL) != sizeof(count)) {
+        OutputDebugStringA("Failed to receive vertex count\n");
+        closesocket(client);
+        closesocket(listenSock);
+        WSACleanup();
+        return -1;
+    }
     Vertex* verts = new Vertex[count];
-    recv(client, reinterpret_cast<char*>(verts), count * sizeof(Vertex), MSG_WAITALL);
+    int bytesToReceive = count * sizeof(Vertex);
+    int totalReceived = 0;
+    while (totalReceived < bytesToReceive) {
+        int r = recv(client,
+            reinterpret_cast<char*>(verts) + totalReceived,
+            bytesToReceive - totalReceived,
+            0);
+        if (r > 0) {
+            totalReceived += r;
+        }
+        else if (r == 0) {
+            OutputDebugStringA("recv: connection closed by peer while receiving vertices\n");
+            break;
+        }
+        else { // SOCKET_ERROR
+            int err = WSAGetLastError();
+            char buf[128];
+            sprintf_s(buf, "recv failed: WSAGetLastError() = %d\n", err);
+            OutputDebugStringA(buf);
+            break;
+        }
+    }
+    if (totalReceived != bytesToReceive) {
+        delete[] verts;
+        closesocket(client);
+        closesocket(listenSock);
+        WSACleanup();
+        return -1;
+    }
 
     // --- Win32 ウィンドウ作成 ---
     WNDCLASS wc = {};
@@ -87,38 +116,39 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmd) {
         nullptr, 0, D3D11_SDK_VERSION,
         &scd, &swap, &dev, nullptr, &ctx))) {
         MessageBox(hWnd, L"D3D11CreateDeviceAndSwapChain failed", L"Error", MB_OK);
+        delete[] verts;
+        closesocket(client);
+        closesocket(listenSock);
+        WSACleanup();
         return -1;
     }
 
-    // --- ウィンドウ用 RTV 作成 ---
+    // --- レンダーターゲットビュー作成 ---
     ID3D11Texture2D* backBuf = nullptr;
+    ID3D11RenderTargetView* rtvWin = nullptr;
     swap->GetBuffer(0, IID_PPV_ARGS(&backBuf));
-    ID3D11RenderTargetView* windowRtv = nullptr;
-    dev->CreateRenderTargetView(backBuf, nullptr, &windowRtv);
-    backBuf->Release();
+    dev->CreateRenderTargetView(backBuf, nullptr, &rtvWin);
 
     // --- オフスクリーン用テクスチャ & RTV ---
     D3D11_TEXTURE2D_DESC texDesc;
     backBuf->GetDesc(&texDesc);
-    // オフスクリーン用は同じフォーマット・サイズ
     texDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
     texDesc.Usage = D3D11_USAGE_DEFAULT;
     texDesc.CPUAccessFlags = 0;
     texDesc.MiscFlags = 0;
-    ID3D11Texture2D* offscreenTex = nullptr;
-    dev->CreateTexture2D(&texDesc, nullptr, &offscreenTex);
-    ID3D11RenderTargetView* offRtv = nullptr;
-    dev->CreateRenderTargetView(offscreenTex, nullptr, &offRtv);
-
-    // 後で読み出し用に backBuf をリリース
+    ID3D11Texture2D* offTex = nullptr;
+    ID3D11RenderTargetView* rtvOff = nullptr;
+    dev->CreateTexture2D(&texDesc, nullptr, &offTex);
+    dev->CreateRenderTargetView(offTex, nullptr, &rtvOff);
     backBuf->Release();
-    // --- ステージングテクスチャ（CPU読み出し用） ---
+
+    // --- ステージングテクスチャ作成 ---
     D3D11_TEXTURE2D_DESC stageDesc = texDesc;
     stageDesc.Usage = D3D11_USAGE_STAGING;
     stageDesc.BindFlags = 0;
     stageDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-    ID3D11Texture2D* stagingTex = nullptr;
-    dev->CreateTexture2D(&stageDesc, nullptr, &stagingTex);
+    ID3D11Texture2D* stageTex = nullptr;
+    dev->CreateTexture2D(&stageDesc, nullptr, &stageTex);
 
     // --- ビューポート設定 ---
     D3D11_VIEWPORT vp = {};
@@ -128,64 +158,51 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmd) {
     vp.MaxDepth = 1.0f;
     ctx->RSSetViewports(1, &vp);
 
-    // --- シェーダー & レイアウト & VB 作成 ---
-    // （既存のVS/PSコンパイルと頂点バッファ生成コードをここに）...
-    
-        // ―― ここまで追加 ――
-        // --- シェーダーコンパイル & 作成 ---
-        ID3D11VertexShader * vs = nullptr;
+    // --- シェーダーコンパイル & 入力レイアウト & VB生成 ---
+    ID3D11VertexShader* vs = nullptr;
     ID3D11PixelShader* ps = nullptr;
     ID3D11InputLayout* layout = nullptr;
+    ID3D11Buffer* vb = nullptr;
 
-    // VS
-    {
-        ID3DBlob* vsBlob = nullptr;
-       auto  hr = D3DCompileFromFile(L"VS.hlsl", nullptr, nullptr,
-            "VSMain", "vs_5_0", 0, 0,
-            &vsBlob, nullptr);
-        if (FAILED(hr)) {
-            OutputDebugString(L"Vertex shader compile failed\n");
-            return -1;
-        }
-        dev->CreateVertexShader(vsBlob->GetBufferPointer(),
-            vsBlob->GetBufferSize(),
-            nullptr, &vs);
-
-        // 入力レイアウト
-        D3D11_INPUT_ELEMENT_DESC desc[] = {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
-              0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-        };
-        dev->CreateInputLayout(desc, 1,
-            vsBlob->GetBufferPointer(),
-            vsBlob->GetBufferSize(),
-            &layout);
-        vsBlob->Release();
+    // Vertex Shader
+    ID3DBlob* vsBlob = nullptr;
+    HRESULT hr = D3DCompileFromFile(L"VS.hlsl", nullptr, nullptr,
+        "VSMain", "vs_5_0",
+        0, 0, &vsBlob, nullptr);
+    if (FAILED(hr)) {
+        OutputDebugStringA("Vertex shader compile failed\n");
+        return -1;
     }
+    dev->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &vs);
 
-    // PS
-    {
-        ID3DBlob* psBlob = nullptr;
-        auto hr = D3DCompileFromFile(L"PS.hlsl", nullptr, nullptr,
-            "PSMain", "ps_5_0", 0, 0,
-            &psBlob, nullptr);
-        if (FAILED(hr)) {
-            OutputDebugString(L"Pixel shader compile failed\n");
-            return -1;
-        }
-        dev->CreatePixelShader(psBlob->GetBufferPointer(),
-            psBlob->GetBufferSize(),
-            nullptr, &ps);
-        psBlob->Release();
+    // Input Layout
+    D3D11_INPUT_ELEMENT_DESC ieDesc[] = {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
+          offsetof(Vertex, x), D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    };
+    dev->CreateInputLayout(ieDesc, _countof(ieDesc),
+        vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(),
+        &layout);
+    vsBlob->Release();
+
+    // Pixel Shader
+    ID3DBlob* psBlob = nullptr;
+    hr = D3DCompileFromFile(L"PS.hlsl", nullptr, nullptr,
+        "PSMain", "ps_5_0",
+        0, 0, &psBlob, nullptr);
+    if (FAILED(hr)) {
+        OutputDebugStringA("Pixel shader compile failed\n");
+        return -1;
     }
+    dev->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &ps);
+    psBlob->Release();
 
-    // --- 頂点バッファ作成 ---
+    // Vertex Buffer
     D3D11_BUFFER_DESC bd = {};
     bd.Usage = D3D11_USAGE_DEFAULT;
     bd.ByteWidth = sizeof(Vertex) * count;
     bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    D3D11_SUBRESOURCE_DATA initData = { vertices, 0, 0 };
-    ID3D11Buffer* vb = nullptr;
+    D3D11_SUBRESOURCE_DATA initData = { verts, 0, 0 };
     dev->CreateBuffer(&bd, &initData, &vb);
 
     // --- メイン描画 & 送信ループ ---
@@ -196,36 +213,40 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmd) {
             DispatchMessage(&msg);
         }
         else {
-            // RTV をウィンドウ & オフスクリーン両方にバインド
-            ID3D11RenderTargetView* rtvs[2] = { windowRtv, offRtv };
+            ID3D11RenderTargetView* rtvs[2] = { rtvWin, rtvOff };
             ctx->OMSetRenderTargets(2, rtvs, nullptr);
-            // クリア
-            const FLOAT clearColor[4] = { 0,0,0,1 };
-            ctx->ClearRenderTargetView(windowRtv, clearColor);
-            ctx->ClearRenderTargetView(offRtv, clearColor);
-
-            // パイプラインセットアップ & Draw
-            // （IASet... / VSSetShader / PSSetShader / ctx->Draw(count,0)）
-
-            // ウィンドウ表示
+            const FLOAT clearC[4] = { 0,0,0,1 };
+            ctx->ClearRenderTargetView(rtvWin, clearC);
+            ctx->ClearRenderTargetView(rtvOff, clearC);
+            ctx->IASetVertexBuffers(0, 1, &vb, nullptr, nullptr);
+            ctx->IASetInputLayout(layout);
+            ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            ctx->VSSetShader(vs, nullptr, 0);
+            ctx->PSSetShader(ps, nullptr, 0);
+            ctx->Draw(count, 0);
             swap->Present(1, 0);
 
-            // オフスクリーンをステージングへコピー & Readback
-            ctx->CopyResource(stagingTex, offscreenTex);
-            D3D11_MAPPED_SUBRESOURCE m;
-            ctx->Map(stagingTex, 0, D3D11_MAP_READ, 0, &m);
+            // Off-screen -> Reading -> Send
+            ctx->CopyResource(stageTex, offTex);
+            D3D11_MAPPED_SUBRESOURCE mres;
+            ctx->Map(stageTex, 0, D3D11_MAP_READ, 0, &mres);
             for (int y = 0; y < HEIGHT; ++y) {
                 send(client,
-                    reinterpret_cast<char*>(m.pData) + (size_t)m.RowPitch * y,
+                    reinterpret_cast<char*>(mres.pData) + mres.RowPitch * y,
                     WIDTH * 4, 0);
             }
-            ctx->Unmap(stagingTex, 0);
+            ctx->Unmap(stageTex, 0);
         }
     }
 
     // --- 後片付け ---
-    offRtv->Release(); stagingTex->Release(); offscreenTex->Release();
-    windowRtv->Release(); swap->Release(); ctx->Release(); dev->Release();
-    closesocket(client); WSACleanup(); delete[] verts;
+    vb->Release(); layout->Release(); vs->Release(); ps->Release();
+    rtvOff->Release(); stageTex->Release(); offTex->Release();
+    rtvWin->Release(); swap->Release(); ctx->Release(); dev->Release();
+    shutdown(client, SD_SEND);
+    closesocket(client);
+    closesocket(listenSock);
+    WSACleanup();
+    delete[] verts;
     return 0;
 }
