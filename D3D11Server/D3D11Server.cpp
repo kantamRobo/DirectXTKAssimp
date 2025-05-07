@@ -218,7 +218,20 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmd) {
             const FLOAT clearC[4] = { 0,0,0,1 };
             ctx->ClearRenderTargetView(rtvWin, clearC);
             ctx->ClearRenderTargetView(rtvOff, clearC);
-            ctx->IASetVertexBuffers(0, 1, &vb, nullptr, nullptr);
+            // 頂点構造体あたりのバイト数
+            UINT stride = sizeof(Vertex);
+            // バッファの先頭オフセット
+            UINT offset = 0;
+
+            // vb は作成済みの ID3D11Buffer*
+            ctx->IASetVertexBuffers(
+                0,       // スロット番号
+                1,       // バッファ数
+                &vb,     // バッファ配列の先頭アドレス
+                &stride, // 1 要素あたりのバイト数
+                &offset  // バッファ内オフセット
+            );
+
             ctx->IASetInputLayout(layout);
             ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
             ctx->VSSetShader(vs, nullptr, 0);
