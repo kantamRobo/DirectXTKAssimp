@@ -4,7 +4,7 @@
 
 #include "pch.h"
 #include "Game.h"
-#include "Model.h"
+
 extern void ExitGame() noexcept;
 
 using namespace DirectX;
@@ -13,7 +13,7 @@ using Microsoft::WRL::ComPtr;
 
 Game::Game() noexcept(false)
 {
-    m_deviceResources = std::make_unique<DX::DeviceResources>();
+    m_deviceResources = std::make_shared<DX::DeviceResources>();
     // TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
     //   Add DX::DeviceResources::c_AllowTearing to opt-in to variable rate displays.
     //   Add DX::DeviceResources::c_EnableHDR for HDR10 display.
@@ -44,9 +44,9 @@ void Game::Initialize(HWND window, int width, int height)
 void Game::Tick()
 {
     m_timer.Tick([&]()
-        {
-            Update(m_timer);
-        });
+    {
+        Update(m_timer);
+    });
 
     Render();
 }
@@ -58,6 +58,9 @@ void Game::Update(DX::StepTimer const& timer)
 
     // TODO: Add your game logic here.
     elapsedTime;
+    // Game::Update
+    m_mtDraw->Update(timer.GetElapsedSeconds());
+
 }
 #pragma endregion
 
@@ -78,7 +81,8 @@ void Game::Render()
 
     // TODO: Add your rendering code here.
     context;
-    model->Draw(m_deviceResources.get());
+    // Game::Render
+    m_mtDraw->Render();
     m_deviceResources->PIXEndEvent();
 
     // Show the new frame.
@@ -168,9 +172,9 @@ void Game::CreateDeviceDependentResources()
     auto device = m_deviceResources->GetD3DDevice();
 
     // TODO: Initialize device dependent objects here (independent of window size).
-    model = std::make_unique<education::Model>(m_deviceResources.get(), "C:\\Users\\hatte\\source\\repos\\DirectXTKAssimp\\DirectXTKAssimp\\無題.x", m_height, m_width);
     device;
-
+    // Game::CreateDeviceDependentResources
+    m_mtDraw = std::make_unique<MultiThreadedDraw>(m_deviceResources, 4);
 
 }
 
@@ -182,6 +186,15 @@ void Game::CreateWindowSizeDependentResources()
 
 void Game::OnDeviceLost()
 {
+#if defined(_DEBUG)
+    // ReportLiveDeviceObjects で詳細レポート
+    Microsoft::WRL::ComPtr<ID3D11Debug> d3dDebug;
+    if (SUCCEEDED(m_deviceResources->GetD3DDevice()->QueryInterface(IID_PPV_ARGS(&d3dDebug))))
+    {
+        d3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+    }
+#endif
+
     // TODO: Add Direct3D resource cleanup here.
 }
 
@@ -191,4 +204,37 @@ void Game::OnDeviceRestored()
 
     CreateWindowSizeDependentResources();
 }
+
+#include <dxgidebug.h>  // DXGI デバッグ用
+
+Game::~Game()
+{
+    // 1) マルチスレッド描画オブジェクトを先に破棄
+    m_mtDraw.reset();
+
+    // 2) 即時コンテキストをクリア＆Flush
+    auto context = m_deviceResources->GetD3DDeviceContext();
+    context->ClearState();
+    context->Flush();
+
+    // 3) DeviceResources のリソースを解放（OnDeviceLost があれば呼ぶ）
+   // m_deviceResources->OnDeviceLost();
+    m_deviceResources.reset();
+
+#if defined(_DEBUG)
+    // 4) D3D11 側のライブオブジェクトを詳細レポート
+    Microsoft::WRL::ComPtr<ID3D11Debug> d3dDebug;
+    if (SUCCEEDED(m_deviceResources->GetD3DDevice()->QueryInterface(IID_PPV_ARGS(&d3dDebug))))
+    {
+        d3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+    }
+    // 5) DXGI 側のライブオブジェクトをレポート
+    Microsoft::WRL::ComPtr<IDXGIDebug1> dxgiDebug;
+    if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&dxgiDebug))))
+    {
+        dxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_SUMMARY);
+    }
+#endif
+}
+
 #pragma endregion

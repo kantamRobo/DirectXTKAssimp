@@ -21,6 +21,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "D3D11Host", "D3D11Host\D3D1
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "D3D11Server", "D3D11Server\D3D11Server.vcxproj", "{F3DB4403-D3D5-48FD-9C47-54B68B8CF34E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTKMultithreading", "DirectXTKMultithreading\DirectXTKMultithreading.vcxproj", "{2A1AB0EE-49A1-4DB6-80D0-C60298EEFB4A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -101,6 +103,14 @@ Global
 		{F3DB4403-D3D5-48FD-9C47-54B68B8CF34E}.Release|x64.Build.0 = Release|x64
 		{F3DB4403-D3D5-48FD-9C47-54B68B8CF34E}.Release|x86.ActiveCfg = Release|Win32
 		{F3DB4403-D3D5-48FD-9C47-54B68B8CF34E}.Release|x86.Build.0 = Release|Win32
+		{2A1AB0EE-49A1-4DB6-80D0-C60298EEFB4A}.Debug|x64.ActiveCfg = Debug|x64
+		{2A1AB0EE-49A1-4DB6-80D0-C60298EEFB4A}.Debug|x64.Build.0 = Debug|x64
+		{2A1AB0EE-49A1-4DB6-80D0-C60298EEFB4A}.Debug|x86.ActiveCfg = Debug|Win32
+		{2A1AB0EE-49A1-4DB6-80D0-C60298EEFB4A}.Debug|x86.Build.0 = Debug|Win32
+		{2A1AB0EE-49A1-4DB6-80D0-C60298EEFB4A}.Release|x64.ActiveCfg = Release|x64
+		{2A1AB0EE-49A1-4DB6-80D0-C60298EEFB4A}.Release|x64.Build.0 = Release|x64
+		{2A1AB0EE-49A1-4DB6-80D0-C60298EEFB4A}.Release|x86.ActiveCfg = Release|Win32
+		{2A1AB0EE-49A1-4DB6-80D0-C60298EEFB4A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

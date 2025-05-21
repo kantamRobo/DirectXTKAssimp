@@ -3,19 +3,22 @@
 //
 
 #pragma once
-#include "pch.h"
-#include <memory>
+
+#include "DeviceResources.h"
 #include "StepTimer.h"
+#include <MultiThreadedDraw.h>
+
 
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
 class Game final : public DX::IDeviceNotify
 {
 public:
-
+    // Game.h
+    std::unique_ptr<MultiThreadedDraw> m_mtDraw;
     Game() noexcept(false);
-    ~Game() = default;
-
+  
+    ~Game();
     Game(Game&&) = default;
     Game& operator= (Game&&) = default;
 
@@ -42,16 +45,10 @@ public:
     void OnWindowSizeChanged(int width, int height);
 
     // Properties
-    void GetDefaultSize(int& width, int& height) const noexcept;
-    int m_width;
-    int m_height;
-    void SetViewPort(int width, int height)
-    {
-        m_width = width;
-        m_height = height;
-    }
+    void GetDefaultSize( int& width, int& height ) const noexcept;
+
 private:
-    std::unique_ptr<education::Model> model;
+
     void Update(DX::StepTimer const& timer);
     void Render();
 
@@ -61,7 +58,7 @@ private:
     void CreateWindowSizeDependentResources();
 
     // Device resources.
-    std::unique_ptr<DX::DeviceResources>    m_deviceResources;
+    std::shared_ptr<DX::DeviceResources>    m_deviceResources;
 
     // Rendering loop timer.
     DX::StepTimer                           m_timer;
