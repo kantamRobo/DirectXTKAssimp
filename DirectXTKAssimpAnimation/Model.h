@@ -6,7 +6,7 @@
 #include <assimp/postprocess.h>
 #include <DDSTextureLoader.h>
 #include <vector>
-
+#include <D>
 struct Bone
 {
 	std::string name;

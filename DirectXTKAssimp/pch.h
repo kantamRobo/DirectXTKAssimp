@@ -57,7 +57,7 @@
 
 #include <VertexTypes.h>
 #include <DeviceResources.h>
-
+#include <GraphicsMemory.h>
 #include "ConstantBuffer.h"
 #include "BufferHelpers.h"
 #include "CommonStates.h"

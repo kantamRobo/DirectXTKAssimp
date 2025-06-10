@@ -55,10 +55,10 @@
 #include <dxgidebug.h>
 #endif
 
+#include "ConstantBuffer.h"
 #include <VertexTypes.h>
 #include <DeviceResources.h>
 
-#include "ConstantBuffer.h"
 #include "BufferHelpers.h"
 #include "CommonStates.h"
 #include "DDSTextureLoader.h"

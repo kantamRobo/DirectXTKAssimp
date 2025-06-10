@@ -19,10 +19,7 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="Model.h" />
-    <ClInclude Include="Camera.h" />
     <ClInclude Include="ConstantBuffer.h" />
-    <ClInclude Include="Polygon.h" />
-    <ClInclude Include="GameObject.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -32,9 +29,6 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="Model.cpp" />
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Polygon.cpp" />
-    <ClCompile Include="GameObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

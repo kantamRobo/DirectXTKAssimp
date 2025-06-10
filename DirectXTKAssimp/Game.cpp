@@ -14,6 +14,7 @@ using Microsoft::WRL::ComPtr;
 Game::Game() noexcept(false)
 {
     m_deviceResources = std::make_unique<DX::DeviceResources>();
+    
     // TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
     //   Add DX::DeviceResources::c_AllowTearing to opt-in to variable rate displays.
     //   Add DX::DeviceResources::c_EnableHDR for HDR10 display.
@@ -168,9 +169,10 @@ void Game::CreateDeviceDependentResources()
     auto device = m_deviceResources->GetD3DDevice();
 
     // TODO: Initialize device dependent objects here (independent of window size).
-	model = std::make_unique<education::Model>(m_deviceResources.get(), "C:\\Users\\hatte\\source\\repos\\DirectXTKAssimp\\DirectXTKAssimp\\–³‘è.x",m_height,m_width);
+    m_graphicsmemory = std::make_unique<DirectX::GraphicsMemory>(device,m_deviceResources->GetBackBufferCount());
+    model = std::make_unique<education::Model>(m_deviceResources.get(), "C:\\Users\\hatte\\source\\repos\\DirectXTKAssimp\\DirectXTKAssimp\\–³‘è.x",m_height,m_width);
     device;
-
+    
 
 }
 

@@ -9,7 +9,7 @@
 #include <cassert>
 #include <d3dcompiler.h>
 #include <algorithm>
-
+#include <BufferHelpers.h>
 #include <functional>
 #include "Model.h"
 #include <map>
@@ -32,7 +32,7 @@ education::Model::Model(DX::DeviceResources* deviceresources,const char* path,in
 /*
 ’Ç‰Á•ª
 */
-    if (FAILED(CreateBuffers(deviceresources,width,height)))
+    if (FAILED(CreateBuffers(deviceresources, width,height)))
     {
 		std::abort();
     }
@@ -315,7 +315,7 @@ auto hr =D3DCompileFromFile(L"VertexShader.hlsl", nullptr, D3D_COMPILE_STANDARD_
     return hr;
 }
 
-HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResources,const DirectX::GraphicsMemory* graphicsmemory, int width, int height)
+HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResources, int width, int height)
 {
     auto device = deviceResources->GetD3DDevice();
     auto context = deviceResources->GetD3DDeviceContext();
@@ -327,20 +327,16 @@ HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResourc
         D3D11_CPU_ACCESS_WRITE                                              // Allow CPU write access
     );
 
-
-    m_vertexBuffer = graphicsmemory->Get().Allocate(context, vertices.size(), 0);
-
-    // Initial data for Vertex Buffer
-    D3D11_SUBRESOURCE_DATA vertexData = {};
-    vertexData.pSysMem = vertices.data();
-
     // Create Vertex Buffer
     Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBufferTemp;
-    HRESULT hr = device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBufferTemp);
-    if (FAILED(hr))
-    {
-        return hr;
-    }
+    DX::ThrowIfFailed(
+        DirectX::CreateStaticBuffer(device,
+            vertices.data(),                // const void *ptr
+            vertices.size(),     // size_t count
+            sizeof(VertexPositionNormalColorTexture), // size_t stride
+            D3D11_BIND_VERTEX_BUFFER, &vertexBufferTemp)
+    );
+
 
     // Store as ID3D11Resource
     m_vertexBuffer = vertexBufferTemp;
@@ -352,18 +348,15 @@ HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResourc
         D3D11_USAGE_DYNAMIC,           // Dynamic usage
         D3D11_CPU_ACCESS_WRITE         // Allow CPU write access
     );
-
-    // Initial data for Index Buffer
-    D3D11_SUBRESOURCE_DATA indexData = {};
-    indexData.pSysMem = indices.data();
-
-    // Create Index Buffer
     Microsoft::WRL::ComPtr<ID3D11Buffer> indexBufferTemp;
-    hr = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBufferTemp);
-    if (FAILED(hr))
-    {
-        return hr;
-    }
+    DX::ThrowIfFailed(
+        DirectX::CreateStaticBuffer(device,
+            indices.data(),                // const void *ptr
+            indices.size(),     // size_t count
+            sizeof(unsigned short), // size_t stride
+            D3D11_BIND_INDEX_BUFFER, &indexBufferTemp)
+    );
+
 
     // Store as ID3D11Resource
     m_indexBuffer = indexBufferTemp;
@@ -415,6 +408,7 @@ HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResourc
 
 HRESULT education::Model::CreateTexture(ID3D11Device* device)
 {
+    /*
     D3D11_SAMPLER_DESC samplerDesc = {};
     samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -431,6 +425,8 @@ HRESULT education::Model::CreateTexture(ID3D11Device* device)
         m_textureBuffer.ReleaseAndGetAddressOf(), m_modelsrv.ReleaseAndGetAddressOf(), 0, nullptr);
    
     return hr;
+    */
+    return S_OK;
 }
 
 
