@@ -39,7 +39,8 @@ namespace education {
 		void GenerateBones();
 		
 		HRESULT CreateShaders(const DX::DeviceResources* deviceResources);
-		HRESULT CreateBuffers(const DX::DeviceResources* deviceResources, int width, int height);
+		HRESULT CreateBuffers(const DX::DeviceResources* deviceResources, const DirectX::GraphicsMemory* graphicsmemory, int width, int height);
+		
 		HRESULT CreateTexture( ID3D11Device* device);
 		
 		

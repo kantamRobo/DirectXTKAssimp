@@ -315,10 +315,10 @@ auto hr =D3DCompileFromFile(L"VertexShader.hlsl", nullptr, D3D_COMPILE_STANDARD_
     return hr;
 }
 
-HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResources, int width, int height)
+HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResources,const DirectX::GraphicsMemory* graphicsmemory, int width, int height)
 {
     auto device = deviceResources->GetD3DDevice();
-
+    auto context = deviceResources->GetD3DDeviceContext();
     // Vertex Buffer Description
     auto vertexBufferDesc = CD3D11_BUFFER_DESC(
         sizeof(DirectX::VertexPositionNormalColorTexture) * vertices.size(), // Total size
@@ -326,6 +326,9 @@ HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResourc
         D3D11_USAGE_DYNAMIC,                                                // Dynamic usage
         D3D11_CPU_ACCESS_WRITE                                              // Allow CPU write access
     );
+
+
+    m_vertexBuffer = graphicsmemory->Get().Allocate(context, vertices.size(), 0);
 
     // Initial data for Vertex Buffer
     D3D11_SUBRESOURCE_DATA vertexData = {};
