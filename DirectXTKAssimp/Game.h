@@ -7,6 +7,7 @@
 #include <memory>
 #include "StepTimer.h"
 #include <GraphicsMemory.h>
+#include <PointLight.h>
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
 class Game final : public DX::IDeviceNotify
@@ -59,7 +60,7 @@ private:
 
     void CreateDeviceDependentResources();
     void CreateWindowSizeDependentResources();
-
+   
     // Device resources.
     std::unique_ptr<DX::DeviceResources>    m_deviceResources;
     std::unique_ptr<DirectX::GraphicsMemory> m_graphicsmemory;

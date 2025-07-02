@@ -185,6 +185,7 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="PointLight.h" />
     <ClInclude Include="StepTimer.h" />
   </ItemGroup>
   <ItemGroup>
