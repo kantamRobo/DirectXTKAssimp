@@ -1,5 +1,5 @@
 #include "pch.h"
-#include <DDSTextureLoader.h>
+#include <WICTextureLoader.h>
 #include "VertexTypes.h"
 #include "DirectXTKHelloConstTexture.h"
 using namespace DirectX;
@@ -8,8 +8,12 @@ using namespace Microsoft::WRL;
 
 
 
-DirectXTKHelloConstTexture::DirectXTKHelloConstTexture(UINT width, UINT height, std::wstring name)
+DirectXTKHelloConstTexture::DirectXTKHelloConstTexture(DX::DeviceResources* DR,UINT width, UINT height, std::wstring name)
 {
+    CreateBuffers(DR, width, height);
+    CreateTexture(DR, name.c_str());
+    CreateShaders(DR);
+
 }
 
 // Update frame-based values.
@@ -65,7 +69,9 @@ void DirectXTKHelloConstTexture::Draw(const DX::DeviceResources* DR) {
     // シェーダー設定
     context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
     context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
+    const auto SRV = srv.GetAddressOf();
     //context->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+    context->PSSetShaderResources(0, 1,SRV);
     context->RSSetState(m_rasterizerState.Get());
 
     //context->PSSetShaderResources(0, 1, m_modelsrv.GetAddressOf());
@@ -123,6 +129,7 @@ HRESULT DirectXTKHelloConstTexture::CreateShaders(const DX::DeviceResources* dev
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        {"TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
     };
 
     UINT numElements = ARRAYSIZE(layout);
@@ -143,7 +150,14 @@ HRESULT DirectXTKHelloConstTexture::CreateShaders(const DX::DeviceResources* dev
         device->CreateRasterizerState(&rasterDesc, &m_rasterizerState);
     }
 
+    /*
+    if (!m_samplerstate)
+    {
+        D3D11_SAMPLER_DESC samplerDesc = {};
 
+        samplerDesc.AddressU=
+    }
+    */
 
 
     return hr;
@@ -225,8 +239,9 @@ HRESULT DirectXTKHelloConstTexture::CreateBuffers(DX::DeviceResources* DR, int w
 HRESULT DirectXTKHelloConstTexture::CreateTexture(DX::DeviceResources* DR,const wchar_t* path)
 {
     auto device = DR->GetD3DDevice();
-    ComPtr<ID3D11ShaderResourceView> srv;
-    HRESULT hr = CreateDDSTextureFromFile(device, path,
+   
+    HRESULT hr = DirectX::CreateWICTextureFromFile(device, L"C:\\Users\\hatte\\source\\repos\\DirectXTKAssimp\\DirectXTKHelloConstTexture\\Test.png",
         nullptr, srv.GetAddressOf());
     DX::ThrowIfFailed(hr);
+    return S_OK;
 }

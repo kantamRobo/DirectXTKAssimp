@@ -3,7 +3,7 @@
 //
 
 #pragma once
-
+#include "DirectXTKHelloConstTexture.h"
 #include "DeviceResources.h"
 #include "StepTimer.h"
 
@@ -57,7 +57,7 @@ private:
 
     // Device resources.
     std::unique_ptr<DX::DeviceResources>    m_deviceResources;
-
+    std::unique_ptr<DirectXTKHelloConstTexture> renderer;
     // Rendering loop timer.
     DX::StepTimer                           m_timer;
 };

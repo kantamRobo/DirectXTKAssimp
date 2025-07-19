@@ -78,7 +78,7 @@ void Game::Render()
 
     // TODO: Add your rendering code here.
     context;
-
+    renderer->Draw(m_deviceResources.get());
     m_deviceResources->PIXEndEvent();
 
     // Show the new frame.
@@ -169,6 +169,7 @@ void Game::CreateDeviceDependentResources()
 
     // TODO: Initialize device dependent objects here (independent of window size).
     device;
+    renderer = std::make_unique<DirectXTKHelloConstTexture>(m_deviceResources.get(), 800, 600, L"C:\\Users\\hatte\\source\\repos\\DirectXTKAssimp\\DirectXTKHelloConstTexture\\Test.png");
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
