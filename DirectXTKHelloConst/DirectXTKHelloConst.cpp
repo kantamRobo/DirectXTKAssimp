@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "VertexTypes.h"
 #include "DirectXTKHelloConst.h"
 
@@ -26,7 +26,7 @@ void DirectXTKHelloConst::OnUpdate(DX::DeviceResources* DR)
     m_constantBufferData.SetData(DR->GetD3DDeviceContext(), sceneCB);
     auto buffer = m_constantBufferData.GetBuffer();
     DR->GetD3DDeviceContext()->PSSetConstantBuffers(0, 1, &buffer);
-    DR->GetD3DDeviceContext()->VSSetConstantBuffers(0, 1, &buffer); // © ‚±‚ê‚ğ’Ç‰Á
+    DR->GetD3DDeviceContext()->VSSetConstantBuffers(0, 1, &buffer); // â† ã“ã‚Œã‚’è¿½åŠ 
 
 }
 
@@ -40,48 +40,48 @@ void DirectXTKHelloConst::Draw(const DX::DeviceResources* DR) {
 
     auto context = DR->GetD3DDeviceContext();
 
-    // Input Layout İ’è
+    // Input Layout è¨­å®š
     context->IASetInputLayout(m_modelInputLayout.Get());
 
-    // ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@‚Ìİ’è
+    // ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ã®è¨­å®š
     auto indexBuffer = static_cast<ID3D11Buffer*>(m_indexBuffer.Get());
-    // Draw() ‚Ì’†
+    // Draw() ã®ä¸­
     context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-    // ’¸“_ƒoƒbƒtƒ@‚Ìİ’è
+    // é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã®è¨­å®š
     UINT stride = sizeof(DirectX::VertexPositionColor);
     UINT offset = 0;
     auto vertexBuffer = static_cast<ID3D11Buffer*>(m_vertexBuffer.Get());
     context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-    // ƒvƒŠƒ~ƒeƒBƒuƒgƒ|ƒƒW[İ’è
+    // ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–ãƒˆãƒãƒ­ã‚¸ãƒ¼è¨­å®š
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     auto buffer = m_constantBufferData.GetBuffer();
     context->VSSetConstantBuffers(0, 1, &buffer);
     context->PSSetConstantBuffers(0, 1, &buffer);
 
-    // ƒVƒF[ƒ_[İ’è
+    // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼è¨­å®š
     context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
     context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
     //context->PSSetSamplers(0, 1, samplerState.GetAddressOf());
     context->RSSetState(m_rasterizerState.Get());
 
     //context->PSSetShaderResources(0, 1, m_modelsrv.GetAddressOf());
-    // •`‰æƒR[ƒ‹   
+    // æç”»ã‚³ãƒ¼ãƒ«   
     context->DrawIndexed(static_cast<UINT>(indices.size()), 0, 0);
 }
 
 
-//ƒVƒF[ƒ_[
+//ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼
 
 HRESULT DirectXTKHelloConst::CreateShaders(const DX::DeviceResources* deviceResources)
 {
-    //ƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒg‚Ìì¬
+    //ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆã®ä½œæˆ
     auto device = deviceResources->GetD3DDevice();
 
     auto context = deviceResources->GetD3DDeviceContext();
 
-    // ’¸“_ƒVƒF[ƒ_[‚ÌƒRƒ“ƒpƒCƒ‹
+    // é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã®ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«
     Microsoft::WRL::ComPtr<ID3DBlob> pVSBlob;
     Microsoft::WRL::ComPtr<ID3DBlob> perrrorBlob;
     auto hr = D3DCompileFromFile(L"VertexShader.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_5_0", 0, 0, pVSBlob.GetAddressOf(), perrrorBlob.GetAddressOf());
@@ -91,7 +91,7 @@ HRESULT DirectXTKHelloConst::CreateShaders(const DX::DeviceResources* deviceReso
         return hr;
     }
 
-    // ’¸“_ƒVƒF[ƒ_[‚Ìì¬
+    // é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã®ä½œæˆ
     hr = device->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, m_vertexShader.GetAddressOf());
     if (FAILED(hr))
     {
@@ -100,7 +100,7 @@ HRESULT DirectXTKHelloConst::CreateShaders(const DX::DeviceResources* deviceReso
     }
 
 
-    // ƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚ÌƒRƒ“ƒpƒCƒ‹
+    // ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã®ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«
     Microsoft::WRL::ComPtr<ID3DBlob> pPSBlob;
     hr = D3DCompileFromFile(L"PixelShader.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_5_0", 0, 0, pPSBlob.GetAddressOf(), nullptr);
 
@@ -110,7 +110,7 @@ HRESULT DirectXTKHelloConst::CreateShaders(const DX::DeviceResources* deviceReso
         return hr;
     }
 
-    //ƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚Ìì¬
+    //ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã®ä½œæˆ
     hr = device->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, m_pixelShader.GetAddressOf());
     if (FAILED(hr))
     {
@@ -134,7 +134,7 @@ HRESULT DirectXTKHelloConst::CreateShaders(const DX::DeviceResources* deviceReso
     {
         D3D11_RASTERIZER_DESC rasterDesc = {};
         rasterDesc.FillMode = D3D11_FILL_SOLID;
-        rasterDesc.CullMode = D3D11_CULL_NONE; // © ƒoƒbƒNƒtƒFƒCƒXƒJƒŠƒ“ƒO‚ğˆê“I‚ÉƒIƒt‚É
+        rasterDesc.CullMode = D3D11_CULL_NONE; // â† ãƒãƒƒã‚¯ãƒ•ã‚§ã‚¤ã‚¹ã‚«ãƒªãƒ³ã‚°ã‚’ä¸€æ™‚çš„ã«ã‚ªãƒ•ã«
         rasterDesc.FrontCounterClockwise = false;
         rasterDesc.DepthClipEnable = true;
 
@@ -151,9 +151,9 @@ HRESULT DirectXTKHelloConst::CreateBuffers(DX::DeviceResources* DR,int width, in
 {
 
     vertices = {
-     { DirectX::XMFLOAT3(-0.5f, -0.5f, 0.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) }, // Ô
-     { DirectX::XMFLOAT3(0.5f, -0.5f, 0.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) }, // —Î
-     { DirectX::XMFLOAT3(0.0f,  0.5f, 0.0f), DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) }  // Â
+     { DirectX::XMFLOAT3(-0.5f, -0.5f, 0.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) }, // èµ¤
+     { DirectX::XMFLOAT3(0.5f, -0.5f, 0.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) }, // ç·‘
+     { DirectX::XMFLOAT3(0.0f,  0.5f, 0.0f), DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) }  // é’
     };
 
     indices = { 0, 1, 2 };
