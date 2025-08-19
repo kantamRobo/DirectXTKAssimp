@@ -1,22 +1,22 @@
+
+#include <CommonStates.h>
+#include <memory>
 #include "pch.h"
 
 #pragma once
+
+
 #include <DirectXMath.h>
 #include <BufferHelpers.h>
 #include <DeviceResources.h>
 #include <vector>
 #include <d3dcompiler.h>
 #include <VertexTypes.h>
-
 struct DirectionLight
 {
-    DirectX::XMFLOAT3 ligDirection;   // ライトの方向
-    float pad0;
-    DirectX::XMFLOAT3 ligColor;       // ライトのカラー
-    float pad1;
-
-    // step-1 構造体に視点の位置を追加する
-    DirectX::XMFLOAT3 eyePos;         // 視点の位置
+    DirectX::XMFLOAT4 ligDirection; // xyz + w(未使用=0や1)
+    DirectX::XMFLOAT4 ligColor;     // rgb + w=強度などに流用可
+    DirectX::XMFLOAT4 eyePos;       // xyz + w(未使用)
 };
 
 struct SceneConstantBuffer
@@ -60,12 +60,14 @@ private:
 
     Microsoft::WRL::ComPtr<ID3D11Resource> m_vertexBuffer;
     Microsoft::WRL::ComPtr<ID3D11Resource> m_indexBuffer;
-
+    std::unique_ptr<DirectX::CommonStates> states;
+    
     //シェーダーの作成
     Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShader;
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
     Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_modelInputLayout = nullptr;// 入力レイアウト
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerState;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> g_Texture;
     void OnUpdate();
     SceneCB sceneCB;
     DirectX::ConstantBuffer<MaterialCB> m_materialcb;

@@ -4,6 +4,7 @@
 // テクスチャなし・定数色＋エミッシブのみを返す最小PS
 float4 main(VSOutput i) : SV_Target
 {
+    
     // ピクセルの法線とライトの方向の内積を計算する
     float t = dot(i.Nrm, ligDirection);
     t *= -1.0f;
@@ -21,7 +22,7 @@ float4 main(VSOutput i) : SV_Target
     float3 refVec = reflect(ligDirection, i.Nrm);
 
     // step-5 光が当たったサーフェイスから視点に伸びるベクトルを求める
-    float3 toEye = eyePos - psIn.worldPos;
+    float3 toEye = eyePos - i.worldPos;
     toEye = normalize(toEye);
 
     // step-6 鏡面反射の強さを求める
@@ -39,13 +40,15 @@ float4 main(VSOutput i) : SV_Target
 
     // step-9 拡散反射光と鏡面反射光を足し算して、最終的な光を求める
     float3 lig = diffuseLig + specularLig;
-    float4 finalColor = g_texture.Sample(g_sampler, psIn.uv);
+    float4 finalColor = g_texture.Sample(g_sampler, i.Tex);
 
     // step-10 テクスチャカラーに求めた光を乗算して最終出力カラーを求める
-    finalColor.xyz *=
-lig;
+    finalColor.xyz *= lig;
     float3 color = saturate(BaseColor.rgb + Emissive);
+
+    
     return float4(color, BaseColor.a * Opacity);
+
 }
 
  

@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
+
 #include "DirectXTKSphereMaterialLight.h"
-#include "pch.h"
-#include "DirectXTKSphereMaterialLight.h"
+
 using namespace DirectX;
 
 
@@ -139,7 +139,12 @@ HRESULT DirectXTKSphereMaterialLight::CreateBuffers(DX::DeviceResources* DR, int
     float nearZ = 0.1f;
     float farZ = 100.0f;
     DirectX::XMMATRIX projMatrix = DirectX::XMMatrixPerspectiveFovLH(fov, aspect, nearZ, farZ);
+    const uint32_t s_pixel = 0xffffffff;
 
+    D3D11_SUBRESOURCE_DATA initData = { &s_pixel, sizeof(uint32_t), 0 };
+    auto hoge = DirectX::CreateTextureFromMemory(DR->GetD3DDevice(), 512, 512, DXGI_FORMAT_R32G32_FLOAT, initData, nullptr, &g_Texture);
+
+    
     // Update Constant Buffer
     SceneCB cb = {};
     XMStoreFloat4x4(&cb.world, XMMatrixTranspose(worldMatrix));
@@ -200,7 +205,7 @@ void DirectXTKSphereMaterialLight::Draw(const DX::DeviceResources* DR) {
     context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     // プリミティブトポロジー設定
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
+    context->PSSetShaderResources(0, 1, g_Texture.GetAddressOf());
     auto buffer = m_SceneBuffer.GetBuffer();
     context->VSSetConstantBuffers(0, 1, &buffer);
     context->PSSetConstantBuffers(0, 1, &buffer);
@@ -210,12 +215,17 @@ void DirectXTKSphereMaterialLight::Draw(const DX::DeviceResources* DR) {
     auto lightbuf = m_LightBuffer.GetBuffer();
     context->VSSetConstantBuffers(2, 1, &lightbuf);
     context->PSSetConstantBuffers(2, 1, &lightbuf);
+  
     // シェーダー設定
     context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
     context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
     //context->PSSetSamplers(0, 1, samplerState.GetAddressOf());
-    context->RSSetState(m_rasterizerState.Get());
+    context->OMSetBlendState(states->Opaque(), Colors::Black, 0xFFFFFFFF);
+   
+    context->RSSetState(states->CullCounterClockwise());
 
+    auto samplerState = states->LinearWrap();
+    context->PSSetSamplers(0, 1, &samplerState);
     //context->PSSetShaderResources(0, 1, m_modelsrv.GetAddressOf());
     // 描画コール   
     context->DrawIndexed(static_cast<UINT>(indices.size()), 0, 0);
@@ -272,8 +282,8 @@ HRESULT DirectXTKSphereMaterialLight::CreateShaders(const DX::DeviceResources* d
         { "SV_Position", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         {"NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD0",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA, 0},
-          {"TEXCOORD1",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA, 0}
+    { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
 
     UINT numElements = ARRAYSIZE(layout);
@@ -293,7 +303,7 @@ HRESULT DirectXTKSphereMaterialLight::CreateShaders(const DX::DeviceResources* d
 
         device->CreateRasterizerState(&rasterDesc, &m_rasterizerState);
     }
-
+    states = std::make_unique<CommonStates>(device);
 
 
 
