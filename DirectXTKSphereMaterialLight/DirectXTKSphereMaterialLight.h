@@ -21,8 +21,23 @@ struct SceneCB {
     DirectX::XMFLOAT4X4 projection;
 };
 
+static const int MAX_LIGHTS = 8;
 
-
+enum LightType : int
+{
+    LIGHT_DIRECTIONAL = 0,
+    LIGHT_POINT = 1,
+    LIGHT_SPOT = 2,
+};
+struct SpotLight
+{
+    float position[3]; // ライトの位置。 3 要素のベクトルで表現される
+    float color[3]; // ライトのカラー。光の三原色RGB で表される
+    float direction[3]; // 放射方向。 3 要素のベクトルで表現される
+    float angle; // 放射角度
+    float influenceRange; // 影響範囲。単位メートル
+    float _pad; // 16B境界合わせ
+};
 struct MaterialCB
 {
     DirectX::XMFLOAT4 BaseColor;           // RGBA
@@ -64,5 +79,5 @@ private:
     MaterialCB updates{};
 
     DirectX::ConstantBuffer<SceneCB> m_SceneBuffer;
-
+    DirectX::ConstantBuffer<SceneCB> m_SceneBuffer;
 };
