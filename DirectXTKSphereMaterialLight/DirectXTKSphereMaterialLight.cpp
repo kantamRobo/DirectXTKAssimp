@@ -54,7 +54,19 @@ HRESULT DirectXTKSphereMaterialLight::CreateBuffers(DX::DeviceResources* DR, int
         }
     }
 
+    // ディレクションライトのデータを作成する
+    DirectionLight directionLig;
 
+    // ライトは右側から当たっている
+    directionLig.ligDirection.x = 1.0f;
+    directionLig.ligDirection.y = -1.0f;
+    directionLig.ligDirection.z = -1.0f;
+    
+
+    // ライトのカラーは白
+    directionLig.ligColor.x = 0.5f;
+    directionLig.ligColor.y = 0.5f;
+    directionLig.ligColor.z = 0.5f;
 
     auto device = DR->GetD3DDevice();
     float aspect = float(width) / float(height);
@@ -136,6 +148,8 @@ HRESULT DirectXTKSphereMaterialLight::CreateBuffers(DX::DeviceResources* DR, int
     m_SceneBuffer.Create(device);
     m_SceneBuffer.SetData(DR->GetD3DDeviceContext(), cb);
 
+    m_LightBuffer.Create(device);
+    m_LightBuffer.SetData(DR->GetD3DDeviceContext(), directionLig);
 
     m_materialcb.SetData(DR->GetD3DDeviceContext(), mat);
 
@@ -193,6 +207,9 @@ void DirectXTKSphereMaterialLight::Draw(const DX::DeviceResources* DR) {
     auto buffermat = m_materialcb.GetBuffer();
     context->VSSetConstantBuffers(1, 1, &buffermat);
     context->PSSetConstantBuffers(1, 1, &buffermat);
+    auto lightbuf = m_LightBuffer.GetBuffer();
+    context->VSSetConstantBuffers(2, 1, &lightbuf);
+    context->PSSetConstantBuffers(2, 1, &lightbuf);
     // シェーダー設定
     context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
     context->PSSetShader(m_pixelShader.Get(), nullptr, 0);

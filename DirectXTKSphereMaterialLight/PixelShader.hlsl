@@ -2,7 +2,7 @@
 #include "Shader.hlsli"
 
 // ディレクションライト用のデータを受け取るための定数バッファーを用意する
-cbuffer DirectionLightCb : register(b1)
+cbuffer DirectionLightCb : register(b2)
 {
     float3 ligDirection; //ライトの方向
     float3 ligColor; //ライトのカラー

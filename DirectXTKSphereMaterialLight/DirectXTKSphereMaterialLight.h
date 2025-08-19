@@ -7,7 +7,17 @@
 #include <vector>
 #include <d3dcompiler.h>
 #include <VertexTypes.h>
-#include <BufferHelpers.h>
+
+struct DirectionLight
+{
+    DirectX::XMFLOAT3 ligDirection;   // ライトの方向
+    float pad0;
+    DirectX::XMFLOAT3 ligColor;       // ライトのカラー
+    float pad1;
+
+    // step-1 構造体に視点の位置を追加する
+    DirectX::XMFLOAT3 eyePos;         // 視点の位置
+};
 
 struct SceneConstantBuffer
 {
@@ -21,23 +31,6 @@ struct SceneCB {
     DirectX::XMFLOAT4X4 projection;
 };
 
-static const int MAX_LIGHTS = 8;
-
-enum LightType : int
-{
-    LIGHT_DIRECTIONAL = 0,
-    LIGHT_POINT = 1,
-    LIGHT_SPOT = 2,
-};
-struct SpotLight
-{
-    float position[3]; // ライトの位置。 3 要素のベクトルで表現される
-    float color[3]; // ライトのカラー。光の三原色RGB で表される
-    float direction[3]; // 放射方向。 3 要素のベクトルで表現される
-    float angle; // 放射角度
-    float influenceRange; // 影響範囲。単位メートル
-    float _pad; // 16B境界合わせ
-};
 struct MaterialCB
 {
     DirectX::XMFLOAT4 BaseColor;           // RGBA
@@ -79,5 +72,5 @@ private:
     MaterialCB updates{};
 
     DirectX::ConstantBuffer<SceneCB> m_SceneBuffer;
-    DirectX::ConstantBuffer<SceneCB> m_SceneBuffer;
+    DirectX::ConstantBuffer<DirectionLight> m_LightBuffer;
 };
