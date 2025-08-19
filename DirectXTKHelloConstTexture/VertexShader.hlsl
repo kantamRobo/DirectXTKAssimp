@@ -1,14 +1,23 @@
 // ── VertexShader.hlsl ─────────────────────
 #include "Shader.hlsli"
 
-VSOutput main(float3 inPos : POSITION,
-    float4 inColor : COLOR,float2 texcoord:TEXCOORD0)
+VSOutput main(VSOutput i)
 {
     VSOutput outV;
 
-    float4 pos = float4(inPos, 1.0f);
-    outV.position = pos + offset; // ← SV_POSITION を必ず書く
-    outV.color = inColor;
-    outV.texcoord = texcoord;
+
+    //座標変換が上手くバインドされていない(シェーダーのバインド自体は出来ている)
+    float4 worldPosition = mul(i.position, World);
+    float4 viewPosition = mul(worldPosition, View);
+    float4 projPosition = mul(viewPosition, Projection);
+
+    outV.position = projPosition;
+   
+
+  
+   
+    outV.Nrm = i.Nrm;
+    outV.Tex = i.Tex;
     return outV;
 }
+

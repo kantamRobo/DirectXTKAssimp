@@ -1,16 +1,22 @@
-
-
-cbuffer PolyConstantBuffer:register(b0)
+cbuffer PolyConstantBuffer : register(b0)
 {
-    float4x4 World; // ワールド変換行列
-    float4x4 View; // ビュー変換行列
-    float4x4 Projection; // 透視射影変換行列
+    float4x4 World;
+    float4x4 View;
+    float4x4 Projection;
 };
 
-struct VSOutput        // ← “PSInput” ではなく用途が分かる名前に
+// VS "Input" : IAと一致するセマンティクスだけ
+struct VSInput
 {
-    float4 position : SV_Position; // ★必須
-    float4 color : COLOR;
+    float3 position : POSITION;
+    float3 normal : NORMAL;
+    float2 tex : TEXCOORD0; // 今回PSでは未使用でもOK
+};
+
+// VS "Output" : ここで初めてSV_Positionにする
+struct VSOutput
+{
+    float4 position : SV_Position;
     float3 Nrm : NORMAL;
     float2 Tex : TEXCOORD0;
     float3 worldPos : TEXCOORD1;
@@ -20,33 +26,17 @@ struct VSOutput        // ← “PSInput” ではなく用途が分かる名前に
 #define Metallic  (Params.y)
 #define Opacity   (Params.z)
 
-// Material.hlsli
 cbuffer MaterialCB : register(b1)
 {
-    float4 BaseColor; // RGBA
+    float4 BaseColor;
     float3 Emissive;
-    float _pad0; // 16B境界合わせ
-    float4 Params; // x=Roughness, y=Metallic, z=Opacity, w=Unused
-}
-
-// ディレクションライト用のデータを受け取るための定数バッファーを用意する
-cbuffer DirectionLightCb : register(b2)
-{
-    float3 ligDirection; //ライトの方向
-    float3 ligColor; //ライトのカラー
-
-    // step-3 視点のデータにアクセスするための変数を定数バッファーに追加する
-    float3 eyePos; //視点の位置
+    float _pad0;
+    float4 Params;
 };
 
-
-///////////////////////////////////////////
-// シェーダーリソース
-///////////////////////////////////////////
-// モデルテクスチャ
-Texture2D<float4> g_texture : register(t0);
-
-///////////////////////////////////////////
-// サンプラーステート
-///////////////////////////////////////////
-sampler g_sampler : register(s0);
+cbuffer DirectionLightCb : register(b2)
+{
+    float4 ligDirection;
+    float4 ligColor;
+    float4 eyePos;
+}

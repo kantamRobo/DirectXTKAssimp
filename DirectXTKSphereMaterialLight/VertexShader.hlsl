@@ -1,23 +1,18 @@
-// ── VertexShader.hlsl ─────────────────────
 #include "Shader.hlsli"
 
-VSOutput main(VSOutput i)
+VSOutput main(VSInput i)
 {
-    VSOutput outV;
+    VSOutput o;
 
+    float4 localPos = float4(i.position, 1.0);
+    float4 worldPos4 = mul(localPos, World);
+    float4 viewPos = mul(worldPos4, View);
+    float4 projPos = mul(viewPos, Projection);
 
-    //座標変換が上手くバインドされていない(シェーダーのバインド自体は出来ている)
-    float4 worldPosition = mul(i.position, World);
-    float4 viewPosition = mul(worldPosition, View);
-    float4 projPosition = mul(viewPosition, Projection);
+    o.position = projPos; // ← 出力だけ SV_Position
+    o.Nrm = mul(float4(i.normal, 0), World).xyz; // ざっくりワールド法線（非正規化ならnormalize）
+    o.Tex = i.tex;
+    o.worldPos = worldPos4.xyz; // PSで視線ベクトル計算に使う
 
-    outV.position = projPosition;
-   
-
-  
-   
-    outV.Nrm = i.Nrm;
-    outV.Tex = i.Tex;
-    return outV;
+    return o;
 }
-

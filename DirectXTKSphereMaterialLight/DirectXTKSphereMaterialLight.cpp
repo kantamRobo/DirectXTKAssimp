@@ -139,11 +139,7 @@ HRESULT DirectXTKSphereMaterialLight::CreateBuffers(DX::DeviceResources* DR, int
     float nearZ = 0.1f;
     float farZ = 100.0f;
     DirectX::XMMATRIX projMatrix = DirectX::XMMatrixPerspectiveFovLH(fov, aspect, nearZ, farZ);
-    const uint32_t s_pixel = 0xffffffff;
-
-    D3D11_SUBRESOURCE_DATA initData = { &s_pixel, sizeof(uint32_t), 0 };
-    auto hoge = DirectX::CreateTextureFromMemory(DR->GetD3DDevice(), 512, 512, DXGI_FORMAT_R32G32_FLOAT, initData, nullptr, &g_Texture);
-
+  
     
     // Update Constant Buffer
     SceneCB cb = {};
@@ -198,9 +194,12 @@ void DirectXTKSphereMaterialLight::Draw(const DX::DeviceResources* DR) {
     // Draw() の中
     context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-    // 頂点バッファの設定
-    UINT stride = sizeof(DirectX::VertexPositionColor);
+    // 頂点バッファの設定// 修正前: UINT stride = sizeof(DirectX::VertexPositionColor);
+    UINT stride = sizeof(DirectX::VertexPositionNormalTexture);  // ← これが正しい
     UINT offset = 0;
+    ID3D11Buffer* vbuffer = static_cast<ID3D11Buffer*>(m_vertexBuffer.Get());
+    context->IASetVertexBuffers(0, 1, &vbuffer, &stride, &offset);
+    ;
     auto vertexBuffer = static_cast<ID3D11Buffer*>(m_vertexBuffer.Get());
     context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     // プリミティブトポロジー設定
@@ -279,12 +278,12 @@ HRESULT DirectXTKSphereMaterialLight::CreateShaders(const DX::DeviceResources* d
     }
     D3D11_INPUT_ELEMENT_DESC layout[] =
     {
-        { "SV_Position", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        {"NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA, 0},
-    { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,                              D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,   D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT,   D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
+    // CreateInputLayout(layout, _countof(layout), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), ...)
+
 
     UINT numElements = ARRAYSIZE(layout);
 

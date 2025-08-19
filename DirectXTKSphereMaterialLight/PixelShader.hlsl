@@ -1,54 +1,32 @@
-// ── PixelShader.hlsl ──────────────────────
 #include "Shader.hlsli"
 
-// テクスチャなし・定数色＋エミッシブのみを返す最小PS
 float4 main(VSOutput i) : SV_Target
 {
-    
-    // ピクセルの法線とライトの方向の内積を計算する
-    float t = dot(i.Nrm, ligDirection);
-    t *= -1.0f;
+    float3 N = normalize(i.Nrm);
+    float3 L = normalize(-ligDirection.xyz); // light -> surface
+    float3 V = normalize(eyePos.xyz - i.worldPos);
+    float3 H = normalize(V + L);
 
-    // 内積の結果が0以下なら0にする
-    if (t < 0.0f)
-    {
-        t = 0.0f;
-    }
+    float NdotL = saturate(dot(N, L));
+    float NdotH = saturate(dot(N, H));
 
-    // 拡散反射光を求める
-    float3 diffuseLig = ligColor * t;
+    float3 albedo = saturate(BaseColor.rgb);
+    float metallic = saturate(Metallic);
+    float roughness = saturate(Roughness);
+    float opacity = saturate(Opacity);
 
-    // step-4 反射ベクトルを求める
-    float3 refVec = reflect(ligDirection, i.Nrm);
+    // Diffuse term (no diffuse for metals in this simple model)
+    float3 kd = (1.0 - metallic);
+    float3 diffuse = kd * albedo * NdotL;
 
-    // step-5 光が当たったサーフェイスから視点に伸びるベクトルを求める
-    float3 toEye = eyePos - i.worldPos;
-    toEye = normalize(toEye);
+    // Simple Blinn-Phong specular driven by roughness
+    float shininess = lerp(128.0, 4.0, roughness * roughness);
+    float3 specColor = lerp(float3(0.04, 0.04, 0.04), albedo, metallic);
+    float specTerm = pow(NdotH, shininess);
+    float3 specular = specColor * specTerm * NdotL;
 
-    // step-6 鏡面反射の強さを求める
-    t = dot(refVec, toEye);
-    if (t < 0.0f)
-    {
-        t = 0.0f;
-    }
+    float3 radiance = ligColor.rgb;
+    float3 color = (diffuse + specular) * radiance + Emissive;
 
-    // step-7 鏡面反射の強さを絞る
-    t = pow(t, 5.0f);
-
-    // step-8 鏡面反射光を求める
-    float3 specularLig = ligColor * t;
-
-    // step-9 拡散反射光と鏡面反射光を足し算して、最終的な光を求める
-    float3 lig = diffuseLig + specularLig;
-    float4 finalColor = g_texture.Sample(g_sampler, i.Tex);
-
-    // step-10 テクスチャカラーに求めた光を乗算して最終出力カラーを求める
-    finalColor.xyz *= lig;
-    float3 color = saturate(BaseColor.rgb + Emissive);
-
-    
-    return float4(color, BaseColor.a * Opacity);
-
+    return float4(saturate(color), BaseColor.a * opacity);
 }
-
- 
