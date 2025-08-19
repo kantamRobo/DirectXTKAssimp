@@ -118,11 +118,12 @@ HRESULT DirectXTKSphereMaterialLight::CreateBuffers(DX::DeviceResources* DR, int
     // Store as ID3D11Resource
     m_indexBuffer = indexBufferTemp;
 
-    // 初期値
     MaterialCB mat{};
-    mat.BaseColor = DirectX::XMFLOAT4(1.0f, 0.85f, 0.7f, 1.0f);  // ほんのり暖色
-    mat.Emissive = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
-    mat.Params = DirectX::XMFLOAT4(0.5f, 0.0f, 1.0f, 0.0f);   // Roughness=0.5, Metallic=0, Opacity=1
+    mat.BaseColor = { 1.0f, 0.85f, 0.70f, 1.0f };
+    mat.Emissive = { 0.0f, 0.0f, 0.0f };
+    mat.Params = { 0.5f, 0.0f, 1.0f, 0.0f }; // Roughness, Metallic, Opacity
+    mat.Params2 = { 0.5f, 0.0f, 0.0f, 0.5f }; // Specular, SpecularTint, Sheen, SheenTint
+    mat.Params3 = { 0.0f, 1.0f, 0.0f, 0.0f }; // Clearcoat, ClearcoatGloss, Subsurface
 
     m_materialcb.Create(device);
     // Store as ID3D11Resource

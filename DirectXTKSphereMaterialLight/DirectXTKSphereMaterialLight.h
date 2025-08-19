@@ -33,9 +33,11 @@ struct SceneCB {
 
 struct MaterialCB
 {
-    DirectX::XMFLOAT4 BaseColor;           // RGBA
-    DirectX::XMFLOAT3 Emissive; float _pad; // 16Bã´äEçáÇÌÇπ
-    DirectX::XMFLOAT4 Params;              // x=Roughness, y=Metallic, z=Opacity, w=Unused
+    DirectX::XMFLOAT4 BaseColor;             // RGBA
+    DirectX::XMFLOAT3 Emissive; float _pad;  // 16B align
+    DirectX::XMFLOAT4 Params;                // x=Roughness, y=Metallic, z=Opacity, w=Unused
+    DirectX::XMFLOAT4 Params2;               // x=Specular, y=SpecularTint, z=Sheen, w=SheenTint
+    DirectX::XMFLOAT4 Params3;               // x=Clearcoat, y=ClearcoatGloss, z=Subsurface, w=Unused
 };
 
 
