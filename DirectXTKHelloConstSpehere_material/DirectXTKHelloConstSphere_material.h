@@ -7,7 +7,9 @@
 #include <vector>
 #include <d3dcompiler.h>
 #include <VertexTypes.h>
-#include <BufferHelpers.h>
+#include <CommonStates.h>
+
+
 
 struct SceneConstantBuffer
 {
@@ -21,8 +23,6 @@ struct SceneCB {
     DirectX::XMFLOAT4X4 projection;
 };
 
-
-
 struct MaterialCB
 {
     DirectX::XMFLOAT4 BaseColor;           // RGBA
@@ -31,11 +31,11 @@ struct MaterialCB
 };
 
 
-class DirectXTKHelloConstSpphere_material
+class DirectXTKHelloConstSphere_material
 {
 public:
-    DirectXTKHelloConstSpphere_material() {};
-    DirectXTKHelloConstSpphere_material(UINT width, UINT height, std::wstring name);
+    DirectXTKHelloConstSphere_material() {};
+    DirectXTKHelloConstSphere_material(UINT width, UINT height, std::wstring name);
 
     void OnUpdate(DX::DeviceResources* DR);
 
@@ -52,17 +52,19 @@ private:
 
     Microsoft::WRL::ComPtr<ID3D11Resource> m_vertexBuffer;
     Microsoft::WRL::ComPtr<ID3D11Resource> m_indexBuffer;
+    std::unique_ptr<DirectX::CommonStates> states;
 
     //シェーダーの作成
     Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShader;
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
     Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_modelInputLayout = nullptr;// 入力レイアウト
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerState;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> g_Texture;
     void OnUpdate();
     SceneCB sceneCB;
     DirectX::ConstantBuffer<MaterialCB> m_materialcb;
     MaterialCB updates{};
 
     DirectX::ConstantBuffer<SceneCB> m_SceneBuffer;
-
+  
 };

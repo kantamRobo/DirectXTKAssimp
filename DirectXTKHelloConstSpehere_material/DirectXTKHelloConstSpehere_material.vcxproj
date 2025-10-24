@@ -180,14 +180,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="DeviceResources.h" />
-    <ClInclude Include="DirectXTKHelloConstSpphere_material.h" />
+    <ClInclude Include="DirectXTKHelloConstSphere_material.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="StepTimer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DeviceResources.cpp" />
-    <ClCompile Include="DirectXTKHelloConstSpphere_material.cpp" />
+    <ClCompile Include="DirectXTKHelloConstSphere_material.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="pch.cpp">

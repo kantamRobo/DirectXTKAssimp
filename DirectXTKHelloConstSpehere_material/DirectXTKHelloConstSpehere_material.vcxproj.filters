@@ -18,7 +18,7 @@
     <ClInclude Include="DeviceResources.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="DirectXTKHelloConstSpphere_material.h" />
+    <ClInclude Include="DirectXTKHelloConstSphere_material.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -27,7 +27,7 @@
     <ClCompile Include="DeviceResources.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="DirectXTKHelloConstSpphere_material.cpp" />
+    <ClCompile Include="DirectXTKHelloConstSphere_material.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

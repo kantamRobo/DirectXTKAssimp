@@ -1,9 +1,8 @@
 ﻿#include "pch.h"
-#include "DirectXTKHelloConstSpphere_material.h"
+#include "DirectXTKHelloConstSphere_material.h"
 using namespace DirectX;
 
-
-HRESULT DirectXTKHelloConstSpphere_material::CreateBuffers(DX::DeviceResources* DR, int width, int height)
+HRESULT DirectXTKHelloConstSphere_material::CreateBuffers(DX::DeviceResources* DR, int width, int height)
 {
 
     constexpr int slices = 32;  // 経度方向の分割数
@@ -53,9 +52,8 @@ HRESULT DirectXTKHelloConstSpphere_material::CreateBuffers(DX::DeviceResources* 
     }
 
 
-
     auto device = DR->GetD3DDevice();
-   float aspect = float(width) / float(height);
+    float aspect = float(width) / float(height);
 
     // Vertex Buffer Description
     auto vertexBufferDesc = CD3D11_BUFFER_DESC(
@@ -121,10 +119,11 @@ HRESULT DirectXTKHelloConstSpphere_material::CreateBuffers(DX::DeviceResources* 
     DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixLookAtLH(eye, focus, up);
 
     float fov = DirectX::XMConvertToRadians(45.0f);
-   aspect = static_cast<float>(width) / static_cast<float>(height);
+    aspect = static_cast<float>(width) / static_cast<float>(height);
     float nearZ = 0.1f;
     float farZ = 100.0f;
     DirectX::XMMATRIX projMatrix = DirectX::XMMatrixPerspectiveFovLH(fov, aspect, nearZ, farZ);
+
 
     // Update Constant Buffer
     SceneCB cb = {};
@@ -133,26 +132,24 @@ HRESULT DirectXTKHelloConstSpphere_material::CreateBuffers(DX::DeviceResources* 
     XMStoreFloat4x4(&cb.projection, XMMatrixTranspose(projMatrix));
     m_SceneBuffer.Create(device);
     m_SceneBuffer.SetData(DR->GetD3DDeviceContext(), cb);
+
   
 
     m_materialcb.SetData(DR->GetD3DDeviceContext(), mat);
-   
+
     return S_OK;
 }
 
 
-DirectXTKHelloConstSpphere_material::DirectXTKHelloConstSpphere_material(UINT width, UINT height, std::wstring name)
-{
-}
 
 // Update frame-based values.
-void DirectXTKHelloConstSpphere_material::OnUpdate(DX::DeviceResources* DR)
+void DirectXTKHelloConstSphere_material::OnUpdate(DX::DeviceResources* DR)
 {
     const float translationSpeed = 0.005f;
     const float offsetBounds = 1.25f;
 
 
-  
+
     auto buffer = m_SceneBuffer.GetBuffer();
     DR->GetD3DDeviceContext()->PSSetConstantBuffers(0, 1, &buffer);
     DR->GetD3DDeviceContext()->VSSetConstantBuffers(0, 1, &buffer); // ← これを追加
@@ -161,7 +158,7 @@ void DirectXTKHelloConstSpphere_material::OnUpdate(DX::DeviceResources* DR)
 
 
 
-void DirectXTKHelloConstSpphere_material::Draw(const DX::DeviceResources* DR) {
+void DirectXTKHelloConstSphere_material::Draw(const DX::DeviceResources* DR) {
     if (vertices.empty() || indices.empty()) {
         OutputDebugStringA("Vertex or index buffer is empty.\n");
         return;
@@ -177,26 +174,35 @@ void DirectXTKHelloConstSpphere_material::Draw(const DX::DeviceResources* DR) {
     // Draw() の中
     context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-    // 頂点バッファの設定
-    UINT stride = sizeof(DirectX::VertexPositionColor);
+    // 頂点バッファの設定// 修正前: UINT stride = sizeof(DirectX::VertexPositionColor);
+    UINT stride = sizeof(DirectX::VertexPositionNormalTexture);  // ← これが正しい
     UINT offset = 0;
+    ID3D11Buffer* vbuffer = static_cast<ID3D11Buffer*>(m_vertexBuffer.Get());
+    context->IASetVertexBuffers(0, 1, &vbuffer, &stride, &offset);
+    ;
     auto vertexBuffer = static_cast<ID3D11Buffer*>(m_vertexBuffer.Get());
     context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     // プリミティブトポロジー設定
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
+    context->PSSetShaderResources(0, 1, g_Texture.GetAddressOf());
     auto buffer = m_SceneBuffer.GetBuffer();
     context->VSSetConstantBuffers(0, 1, &buffer);
     context->PSSetConstantBuffers(0, 1, &buffer);
     auto buffermat = m_materialcb.GetBuffer();
     context->VSSetConstantBuffers(1, 1, &buffermat);
     context->PSSetConstantBuffers(1, 1, &buffermat);
+  
+
     // シェーダー設定
     context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
     context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
     //context->PSSetSamplers(0, 1, samplerState.GetAddressOf());
-    context->RSSetState(m_rasterizerState.Get());
-   
+    context->OMSetBlendState(states->Opaque(), Colors::Black, 0xFFFFFFFF);
+
+    context->RSSetState(states->CullCounterClockwise());
+
+    auto samplerState = states->LinearWrap();
+    context->PSSetSamplers(0, 1, &samplerState);
     //context->PSSetShaderResources(0, 1, m_modelsrv.GetAddressOf());
     // 描画コール   
     context->DrawIndexed(static_cast<UINT>(indices.size()), 0, 0);
@@ -205,7 +211,7 @@ void DirectXTKHelloConstSpphere_material::Draw(const DX::DeviceResources* DR) {
 
 //シェーダー
 
-HRESULT DirectXTKHelloConstSpphere_material::CreateShaders(const DX::DeviceResources* deviceResources)
+HRESULT DirectXTKHelloConstSphere_material::CreateShaders(const DX::DeviceResources* deviceResources)
 {
     //パイプラインステートの作成
     auto device = deviceResources->GetD3DDevice();
@@ -250,11 +256,13 @@ HRESULT DirectXTKHelloConstSpphere_material::CreateShaders(const DX::DeviceResou
     }
     D3D11_INPUT_ELEMENT_DESC layout[] =
     {
-        { "SV_Position", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        {"NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA, 0}
+        { "SV_Position", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,                              D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{"COLOR",      0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,   D3D11_INPUT_PER_VERTEX_DATA, 0 }, 
+        { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,   D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT,   D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
+    // CreateInputLayout(layout, _countof(layout), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), ...)
+
 
     UINT numElements = ARRAYSIZE(layout);
 
@@ -273,7 +281,7 @@ HRESULT DirectXTKHelloConstSpphere_material::CreateShaders(const DX::DeviceResou
 
         device->CreateRasterizerState(&rasterDesc, &m_rasterizerState);
     }
-
+    states = std::make_unique<CommonStates>(device);
 
 
 
