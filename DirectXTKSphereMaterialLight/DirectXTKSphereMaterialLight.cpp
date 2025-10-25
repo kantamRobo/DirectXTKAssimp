@@ -54,8 +54,7 @@ HRESULT DirectXTKSphereMaterialLight::CreateBuffers(DX::DeviceResources* DR, int
         }
     }
 
-    // ディレクションライトのデータを作成する
-    DirectionLight directionLig;
+   
 
     // ライトは右側から当たっている
     directionLig.ligDirection.x = 1.0f;

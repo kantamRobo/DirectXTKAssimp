@@ -72,7 +72,7 @@ private:
     SceneCB sceneCB;
     DirectX::ConstantBuffer<MaterialCB> m_materialcb;
     MaterialCB updates{};
-
+    DirectionLight directionLig{};
     DirectX::ConstantBuffer<SceneCB> m_SceneBuffer;
     DirectX::ConstantBuffer<DirectionLight> m_LightBuffer;
 };
