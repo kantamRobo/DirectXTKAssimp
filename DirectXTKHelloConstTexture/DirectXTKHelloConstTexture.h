@@ -25,7 +25,7 @@ public:
 
     void OnUpdate(DX::DeviceResources* DR);
 
-    void Draw(const DX::DeviceResources* DR);
+    void Draw( DX::DeviceResources* DR);
 
     HRESULT CreateShaders(const DX::DeviceResources* deviceResources);
 
@@ -47,7 +47,7 @@ private:
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerState;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
     Microsoft::WRL::ComPtr<ID3D11SamplerState> m_samplerstate;
-    void OnUpdate();
+  
     SceneConstantBuffer sceneCB;
     DirectX::ConstantBuffer<SceneConstantBuffer>m_constantBufferData;
 

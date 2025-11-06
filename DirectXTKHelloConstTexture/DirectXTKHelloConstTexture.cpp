@@ -40,14 +40,14 @@ void DirectXTKHelloConstTexture::OnUpdate(DX::DeviceResources* DR)
 
 
 
-void DirectXTKHelloConstTexture::Draw(const DX::DeviceResources* DR) {
+void DirectXTKHelloConstTexture::Draw( DX::DeviceResources* DR) {
     if (vertices.empty() || indices.empty()) {
         OutputDebugStringA("Vertex or index buffer is empty.\n");
         return;
     }
 
     auto context = DR->GetD3DDeviceContext();
-
+    OnUpdate(DR);
     // Input Layout Ý’è
     context->IASetInputLayout(m_modelInputLayout.Get());
 
