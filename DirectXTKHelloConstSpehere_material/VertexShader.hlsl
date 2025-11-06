@@ -15,8 +15,6 @@ VSOutput main(VSOutput i)
    
 
   
-   
-    outV.Nrm = i.Nrm;
     outV.Tex = i.Tex;
     return outV;
 }

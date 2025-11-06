@@ -5,13 +5,19 @@ cbuffer PolyConstantBuffer
     float4x4 Projection; // 透視射影変換行列
 };
 
-struct VSOutput        // ← “PSInput” ではなく用途が分かる名前に
+struct VSInput
 {
-    float4 position : SV_Position; // ★必須
-    float4 color : COLOR;
-    float3 Nrm : NORMAL;
+    float3 Pos : POSITION;
+    float4 Color : COLOR0; // 今回は未使用（残してOK）
     float2 Tex : TEXCOORD0;
 };
+
+struct VSOutput
+{
+    float4 Pos : SV_Position;
+    float2 Tex : TEXCOORD0;
+};
+
 
 #define Roughness (Params.x)
 #define Metallic  (Params.y)

@@ -1,7 +1,9 @@
 #include "pch.h"
 #include <WICTextureLoader.h>
 #include "VertexTypes.h"
+
 #include "DirectXTKHelloConstTexture.h"
+
 using namespace DirectX;
 using namespace Microsoft::WRL;
 
@@ -55,7 +57,7 @@ void DirectXTKHelloConstTexture::Draw(const DX::DeviceResources* DR) {
     context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
     // 頂点バッファの設定
-    UINT stride = sizeof(DirectX::VertexPositionColor);
+    UINT stride = sizeof(DirectX::VertexPositionColorTexture);
     UINT offset = 0;
     auto vertexBuffer = static_cast<ID3D11Buffer*>(m_vertexBuffer.Get());
     context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
@@ -70,11 +72,11 @@ void DirectXTKHelloConstTexture::Draw(const DX::DeviceResources* DR) {
     context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
     context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
     const auto SRV = srv.GetAddressOf();
-    //context->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+    auto samplerState = state->LinearWrap();
+    context->PSSetSamplers(0, 1,&samplerState);
     context->PSSetShaderResources(0, 1,SRV);
     context->RSSetState(m_rasterizerState.Get());
-
-    //context->PSSetShaderResources(0, 1, m_modelsrv.GetAddressOf());
+    
     // 描画コール   
     context->DrawIndexed(static_cast<UINT>(indices.size()), 0, 0);
 }
@@ -127,10 +129,11 @@ HRESULT DirectXTKHelloConstTexture::CreateShaders(const DX::DeviceResources* dev
     }
     D3D11_INPUT_ELEMENT_DESC layout[] =
     {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "SV_POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 0,                           D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        {"TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
+
 
     UINT numElements = ARRAYSIZE(layout);
 
@@ -150,15 +153,8 @@ HRESULT DirectXTKHelloConstTexture::CreateShaders(const DX::DeviceResources* dev
         device->CreateRasterizerState(&rasterDesc, &m_rasterizerState);
     }
 
-    /*
-    if (!m_samplerstate)
-    {
-        D3D11_SAMPLER_DESC samplerDesc = {};
-
-        samplerDesc.AddressU=
-    }
-    */
-
+    state = std::make_unique<CommonStates>(device);
+    
 
     return hr;
 }
@@ -167,9 +163,9 @@ HRESULT DirectXTKHelloConstTexture::CreateBuffers(DX::DeviceResources* DR, int w
 {
 
     vertices = {
-     { DirectX::XMFLOAT3(-0.5f, -0.5f, 0.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) }, // 赤
-     { DirectX::XMFLOAT3(0.5f, -0.5f, 0.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) }, // 緑
-     { DirectX::XMFLOAT3(0.0f,  0.5f, 0.0f), DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) }  // 青
+     {DirectX::XMFLOAT3{ -0.5f, -0.5f, 0.0f },DirectX::XMFLOAT4 { 1.0f, 0.0f, 0.0f, 1.0f }, DirectX::XMFLOAT2{ 0.0f, 1.0f } }, // 赤
+     {DirectX::XMFLOAT3{  0.5f, -0.5f, 0.0f }, DirectX::XMFLOAT4 { 0.0f, 1.0f, 0.0f, 1.0f },  DirectX::XMFLOAT2{ 1.0f, 1.0f }}, // 緑
+        {DirectX::XMFLOAT3 {  0.0f,  0.5f, 0.0f }, DirectX::XMFLOAT4 { 0.0f, 0.0f, 1.0f, 1.0f },  DirectX::XMFLOAT2{ 0.5f, 0.0f }  }  // 青
     };
 
     indices = { 0, 1, 2 };
@@ -180,50 +176,33 @@ HRESULT DirectXTKHelloConstTexture::CreateBuffers(DX::DeviceResources* DR, int w
 
     // Vertex Buffer Description
     auto vertexBufferDesc = CD3D11_BUFFER_DESC(
-        sizeof(DirectX::VertexPositionColor) * vertices.size(), // Total size
+        sizeof(DirectX::VertexPositionColorTexture) * vertices.size(), // Total size
         D3D11_BIND_VERTEX_BUFFER,                                           // Bind as vertex buffer
         D3D11_USAGE_DYNAMIC,                                                // Dynamic usage
         D3D11_CPU_ACCESS_WRITE                                              // Allow CPU write access
     );
 
+    
+    DX::ThrowIfFailed(
+        (DirectX::CreateStaticBuffer(device,
+            vertices.data(),
+            vertices.size(),
+            sizeof(VertexPositionColorTexture),
+            D3D11_BIND_VERTEX_BUFFER, m_vertexBuffer.GetAddressOf())));
 
-    // Initial data for Vertex Buffer
-    D3D11_SUBRESOURCE_DATA vertexData = {};
-    vertexData.pSysMem = vertices.data();
 
-    // Create Vertex Buffer
-    Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBufferTemp;
-    HRESULT hr = device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBufferTemp);
-    if (FAILED(hr))
-    {
-        return hr;
-    }
+ 
 
-    // Store as ID3D11Resource
-    m_vertexBuffer = vertexBufferTemp;
+   
 
-    // Index Buffer Description
-    auto indexBufferDesc = CD3D11_BUFFER_DESC(
-        sizeof(UINT) * indices.size(), // Total size
-        D3D11_BIND_INDEX_BUFFER,       // Bind as index buffer
-        D3D11_USAGE_DYNAMIC,           // Dynamic usage
-        D3D11_CPU_ACCESS_WRITE         // Allow CPU write access
+    
+
+    DX::ThrowIfFailed(
+        CreateStaticBuffer(device, indices, D3D11_BIND_INDEX_BUFFER, m_indexBuffer.GetAddressOf())
     );
+    ;
 
-    // Initial data for Index Buffer
-    D3D11_SUBRESOURCE_DATA indexData = {};
-    indexData.pSysMem = indices.data();
-
-    // Create Index Buffer
-    Microsoft::WRL::ComPtr<ID3D11Buffer> indexBufferTemp;
-    hr = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBufferTemp);
-    if (FAILED(hr))
-    {
-        return hr;
-    }
-
-    // Store as ID3D11Resource
-    m_indexBuffer = indexBufferTemp;
+   
 
     // Create Constant Buffer
     m_constantBufferData.Create(device);

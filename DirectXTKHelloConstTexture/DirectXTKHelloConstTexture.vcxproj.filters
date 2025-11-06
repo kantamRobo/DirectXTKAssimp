@@ -43,8 +43,8 @@
     </Manifest>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
     <None Include="Shader.hlsli" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl" />
