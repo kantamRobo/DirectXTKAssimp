@@ -73,9 +73,14 @@ void DirectXTKHelloConstTexture::Draw( DX::DeviceResources* DR) {
     context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
     const auto SRV = srv.GetAddressOf();
     auto samplerState = state->LinearWrap();
-    context->PSSetSamplers(0, 1,&samplerState);
+   
     context->PSSetShaderResources(0, 1,SRV);
-    context->RSSetState(m_rasterizerState.Get());
+	auto sampler = state->LinearWrap();
+	context->PSSetSamplers(0, 1, &sampler);
+    auto rasterizerState = state->CullClockwise();
+    
+    context->RSSetState(rasterizerState);
+
     
     // 描画コール   
     context->DrawIndexed(static_cast<UINT>(indices.size()), 0, 0);
@@ -142,17 +147,7 @@ HRESULT DirectXTKHelloConstTexture::CreateShaders(const DX::DeviceResources* dev
     {
         return hr;
     }
-    if (!m_rasterizerState)
-    {
-        D3D11_RASTERIZER_DESC rasterDesc = {};
-        rasterDesc.FillMode = D3D11_FILL_SOLID;
-        rasterDesc.CullMode = D3D11_CULL_NONE; // ← バックフェイスカリングを一時的にオフに
-        rasterDesc.FrontCounterClockwise = false;
-        rasterDesc.DepthClipEnable = true;
-
-        device->CreateRasterizerState(&rasterDesc, &m_rasterizerState);
-    }
-
+    
     state = std::make_unique<CommonStates>(device);
     
 
@@ -174,13 +169,7 @@ HRESULT DirectXTKHelloConstTexture::CreateBuffers(DX::DeviceResources* DR, int w
 
     auto device = DR->GetD3DDevice();
 
-    // Vertex Buffer Description
-    auto vertexBufferDesc = CD3D11_BUFFER_DESC(
-        sizeof(DirectX::VertexPositionColorTexture) * vertices.size(), // Total size
-        D3D11_BIND_VERTEX_BUFFER,                                           // Bind as vertex buffer
-        D3D11_USAGE_DYNAMIC,                                                // Dynamic usage
-        D3D11_CPU_ACCESS_WRITE                                              // Allow CPU write access
-    );
+  
 
     
     DX::ThrowIfFailed(

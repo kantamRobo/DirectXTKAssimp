@@ -44,9 +44,8 @@ private:
     Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShader;
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
     Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_modelInputLayout = nullptr;// 入力レイアウト
-    Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerState;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
-    Microsoft::WRL::ComPtr<ID3D11SamplerState> m_samplerstate;
+ 
   
     SceneConstantBuffer sceneCB;
     DirectX::ConstantBuffer<SceneConstantBuffer>m_constantBufferData;
