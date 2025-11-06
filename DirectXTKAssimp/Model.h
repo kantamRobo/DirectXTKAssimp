@@ -7,24 +7,10 @@
 #include <DDSTextureLoader.h>
 #include <vector>
 
-struct Bone
-{
-	std::string name;
-	DirectX::XMFLOAT4X4 offset;
-	aiVertexWeight weight;
 
-};
 namespace education {
 
-	using namespace DirectX;
-	using namespace Microsoft::WRL;
-	// シンプルなマテリアル構造体
-	struct Material {
-		DirectX::XMFLOAT4 Ambient;   // 環境光
-		DirectX::XMFLOAT4 Diffuse;   // 拡散色
-		DirectX::XMFLOAT4 Specular;  // 鏡面反射
-		float Shininess;             // 光沢度
-	};
+	
 
 	class Model 
 	{
@@ -51,7 +37,7 @@ namespace education {
 	
 		
 		
-		DirectX::ConstantBuffer<Material> m_materialbuffer;
+		
 
 
 

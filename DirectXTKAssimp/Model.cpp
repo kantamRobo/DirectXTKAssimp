@@ -133,120 +133,6 @@ std::vector<DirectX::VertexPositionNormalTangentColorTextureSkinning> education:
 }
 
 
-void education::Model::GenerateBones()
-{
-   
-    // ボーン情報を取得
-    for (unsigned int meshIndex = 0; meshIndex < m_scene->mNumMeshes; ++meshIndex) {
-        aiMesh* mesh = m_scene->mMeshes[meshIndex];
-        if (mesh->HasBones()) {
-            for (unsigned int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
-                aiBone* l_aibone = mesh->mBones[boneIndex];
-                std::string boneName = l_aibone->mName.C_Str();
-
-               
-                m_bone.offset._11 = l_aibone->mOffsetMatrix.a1;
-				m_bone.offset._12 = l_aibone->mOffsetMatrix.a2;
-				m_bone.offset._13 = l_aibone->mOffsetMatrix.a3;
-				m_bone.offset._14 = l_aibone->mOffsetMatrix.a4;
-                
-				m_bone.offset._21 = l_aibone->mOffsetMatrix.b1;
-				m_bone.offset._22 = l_aibone->mOffsetMatrix.b2;
-				m_bone.offset._23 = l_aibone->mOffsetMatrix.b3;
-				m_bone.offset._24 = l_aibone->mOffsetMatrix.b4;
-
-				m_bone.offset._31 = l_aibone->mOffsetMatrix.c1;
-				m_bone.offset._32 = l_aibone->mOffsetMatrix.c2;
-				m_bone.offset._33 = l_aibone->mOffsetMatrix.c3;
-				m_bone.offset._34 = l_aibone->mOffsetMatrix.c4;
-
-				m_bone.offset._41 = l_aibone->mOffsetMatrix.d1;
-				m_bone.offset._42 = l_aibone->mOffsetMatrix.d2;
-				m_bone.offset._43 = l_aibone->mOffsetMatrix.d3;
-				m_bone.offset._44 = l_aibone->mOffsetMatrix.d4;
-
-
-                for (unsigned int weightIndex = 0; weightIndex < l_aibone->mNumWeights; ++weightIndex) {
-                    m_bone.weight = l_aibone->mWeights[weightIndex];
-
-					m_bone.weight.mVertexId = l_aibone->mWeights->mVertexId;
-					m_bone.weight.mWeight = l_aibone->mWeights->mWeight;
-
-                    
-                }
-            }
-        }
-    }
-
-
-}
-// ボーンごとの最大数
-constexpr int MAX_BONE_INFLUENCE = 4;
-constexpr int MAX_BONES = 100;
-
-
-
-// ボーン情報
-struct BoneInfo {
-    DirectX::XMMATRIX offsetMatrix;  // ボーンのオフセット行列
-    DirectX::XMMATRIX finalTransform; // アニメーション計算後に渡す行列
-};
-
-
-std::map<std::string, int> boneMapping; // ボーン名 → インデックス
-std::vector<BoneInfo> boneInfos;        // ボーンの情報配列
-int boneCount = 0;                      // ボーンの総数
-
-
-
-void ExtractBoneWeightForVertices(std::vector<VertexPositionNormalTangentColorTextureSkinning>& vertices, aiMesh* mesh, const aiScene* scene)
-{
-    for (unsigned int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
-        aiBone* bone = mesh->mBones[boneIndex];
-        std::string boneName(bone->mName.C_Str());
-
-        int boneID = 0;
-        if (boneMapping.find(boneName) == boneMapping.end()) {
-            // 新規ボーン
-            boneID = boneCount;
-            boneMapping[boneName] = boneID;
-
-            BoneInfo boneInfo;
-            boneInfo.offsetMatrix = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&bone->mOffsetMatrix));
-            boneInfos.push_back(boneInfo);
-            ++boneCount;
-        }
-        else {
-            boneID = boneMapping[boneName];
-        }
-
-        // 頂点にウェイトを割り当てる
-        for (unsigned int weightIndex = 0; weightIndex < bone->mNumWeights; ++weightIndex) {
-            unsigned int vertexID = bone->mWeights[weightIndex].mVertexId;
-            float weight = bone->mWeights[weightIndex].mWeight;
-
-            for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
-               
-                    vertices[vertexID].weights = weight;
-                    
-                    break;
-                
-            }
-        }
-    }
-
-
-
-    for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
-        aiMesh* mesh = scene->mMeshes[i];
-        std::vector<DirectX::VertexPositionNormalTangentColorTextureSkinning> vertices;
-
-        // 頂点などを読み込む処理（省略）
-
-        ExtractBoneWeightForVertices(vertices, mesh, scene);
-    }
-}
-
 
 HRESULT education::Model::CreateShaders(const DX::DeviceResources* deviceResources)
 {
@@ -366,12 +252,7 @@ HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResourc
 
 	//m_boneBuffer.Create(device);
 
-    //ボーンの座標変換
-	m_bone.offset = DirectX::XMFLOAT4X4(1.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f);
-
+   
     // Set up Matrices
     DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
     DirectX::XMVECTOR eye = DirectX::XMVectorSet(2.0f, 2.0f, -10.0f, 0.0f);
@@ -392,40 +273,7 @@ HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResourc
     XMStoreFloat4x4(&cb.projection, XMMatrixTranspose(projMatrix));
 
     m_constantBuffer.SetData(deviceResources->GetD3DDeviceContext(), cb);
-  /*
-    // マテリアルプロパティ
-    Material material = {};
-    material.Ambient = DirectX::XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
-    material.Diffuse = DirectX::XMFLOAT4(0.8f, 0.0f, 0.0f, 1.0f); // 赤
-    material.Specular = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-    material.Shininess = 32.0f;
-//    m_materialbuffer.Create(deviceResources->GetD3DDevice());
-*/
-   // m_materialbuffer.SetData(deviceResources->GetD3DDeviceContext(), material);
-
-    return S_OK;
-}
-
-HRESULT education::Model::CreateTexture(ID3D11Device* device)
-{
-    /*
-    D3D11_SAMPLER_DESC samplerDesc = {};
-    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-
-    ComPtr<ID3D11SamplerState> samplerState;
-    HRESULT hr = device->CreateSamplerState(&samplerDesc, &samplerState);
-    if (FAILED(hr)) {
-        OutputDebugStringA("Failed to create sampler state.\n");
-        return hr;
-    }
-    hr = DirectX::CreateDDSTextureFromFile(device, L"SEAFLOOR.DDS",
-        m_textureBuffer.ReleaseAndGetAddressOf(), m_modelsrv.ReleaseAndGetAddressOf(), 0, nullptr);
-   
-    return hr;
-    */
+  
     return S_OK;
 }
 
