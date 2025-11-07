@@ -7,6 +7,7 @@
 #include <vector>
 #include <d3dcompiler.h>
 #include <VertexTypes.h>
+#include <CommonStates.h>
 
 
 struct SceneConstantBuffer
@@ -39,9 +40,9 @@ public:
 private:
     static const UINT FrameCount = 2;
 
-    Microsoft::WRL::ComPtr<ID3D11Resource> m_vertexBuffer;
-    Microsoft::WRL::ComPtr<ID3D11Resource> m_indexBuffer;
-
+    Microsoft::WRL::ComPtr<ID3D11Buffer> m_vertexBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> m_indexBuffer;
+    std::unique_ptr<DirectX::CommonStates> state;
     //シェーダーの作成
     Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShader;
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;

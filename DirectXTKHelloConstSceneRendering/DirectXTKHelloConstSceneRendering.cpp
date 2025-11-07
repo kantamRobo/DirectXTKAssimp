@@ -194,7 +194,9 @@ void DirectXTKHelloConstSceneRendering::Draw(const DX::DeviceResources* DR) {
     context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
     context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
     //context->PSSetSamplers(0, 1, samplerState.GetAddressOf());
-    context->RSSetState(m_rasterizerState.Get());
+   
+	auto RS = state->CullNone();
+    context->RSSetState(RS);
 
     //context->PSSetShaderResources(0, 1, m_modelsrv.GetAddressOf());
     // 描画コール   
@@ -260,20 +262,11 @@ HRESULT DirectXTKHelloConstSceneRendering::CreateShaders(const DX::DeviceResourc
     {
         return hr;
     }
-    if (!m_rasterizerState)
-    {
-        D3D11_RASTERIZER_DESC rasterDesc = {};
-        rasterDesc.FillMode = D3D11_FILL_SOLID;
-        rasterDesc.CullMode = D3D11_CULL_NONE; // ← バックフェイスカリングを一時的にオフに
-        rasterDesc.FrontCounterClockwise = false;
-        rasterDesc.DepthClipEnable = true;
-
-        device->CreateRasterizerState(&rasterDesc, &m_rasterizerState);
-    }
+   
 
 
 
-
+    state = std::make_unique<DirectX::CommonStates>(device);
     return hr;
 }
 
@@ -292,52 +285,42 @@ HRESULT DirectXTKHelloConstSceneRendering::CreateBuffers(DX::DeviceResources* DR
 
     auto device = DR->GetD3DDevice();
     auto context = DR->GetD3DDeviceContext();
-    // Vertex Buffer Description
-    auto vertexBufferDesc = CD3D11_BUFFER_DESC(
-        sizeof(DirectX::VertexPositionColor) * vertices.size(), // Total size
-        D3D11_BIND_VERTEX_BUFFER,                                           // Bind as vertex buffer
-        D3D11_USAGE_DYNAMIC,                                                // Dynamic usage
-        D3D11_CPU_ACCESS_WRITE                                              // Allow CPU write access
+   
+
+  
+    
+
+  
+
+    
+
+    indices = { 0, 1, 2 };
+
+
+
+    
+
+
+
+
+    DX::ThrowIfFailed(
+        (DirectX::CreateStaticBuffer(device,
+            vertices.data(),
+            vertices.size(),
+            sizeof(DirectX::VertexPositionColor),
+            D3D11_BIND_VERTEX_BUFFER, m_vertexBuffer.GetAddressOf())));
+
+
+
+
+
+
+
+
+    DX::ThrowIfFailed(
+        DirectX::CreateStaticBuffer(device, indices, D3D11_BIND_INDEX_BUFFER, m_indexBuffer.GetAddressOf())
     );
-
-
-    // Initial data for Vertex Buffer
-    D3D11_SUBRESOURCE_DATA vertexData = {};
-    vertexData.pSysMem = vertices.data();
-
-    // Create Vertex Buffer
-    Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBufferTemp;
-    HRESULT hr = device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBufferTemp);
-    if (FAILED(hr))
-    {
-        return hr;
-    }
-
-    // Store as ID3D11Resource
-    m_vertexBuffer = vertexBufferTemp;
-
-    // Index Buffer Description
-    auto indexBufferDesc = CD3D11_BUFFER_DESC(
-        sizeof(UINT) * indices.size(), // Total size
-        D3D11_BIND_INDEX_BUFFER,       // Bind as index buffer
-        D3D11_USAGE_DYNAMIC,           // Dynamic usage
-        D3D11_CPU_ACCESS_WRITE         // Allow CPU write access
-    );
-
-    // Initial data for Index Buffer
-    D3D11_SUBRESOURCE_DATA indexData = {};
-    indexData.pSysMem = indices.data();
-
-    // Create Index Buffer
-    Microsoft::WRL::ComPtr<ID3D11Buffer> indexBufferTemp;
-    hr = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBufferTemp);
-    if (FAILED(hr))
-    {
-        return hr;
-    }
-
-    // Store as ID3D11Resource
-    m_indexBuffer = indexBufferTemp;
+    ;
     // Update Constant Buffer  // Set up Matrices
     DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
     DirectX::XMVECTOR eye = DirectX::XMVectorSet(2.0f, 2.0f, -10.0f, 0.0f);
