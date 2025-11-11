@@ -29,6 +29,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTKHelloConstSpehere_
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTKSphereMaterialLight", "DirectXTKSphereMaterialLight\DirectXTKSphereMaterialLight.vcxproj", "{91FD4833-CB5E-4912-A422-3F20986AD38E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTKTexture", "DirectXTKTexture\DirectXTKTexture.vcxproj", "{6B204BE6-3C0A-4B50-B8E8-B73A105DE68C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -141,6 +143,14 @@ Global
 		{91FD4833-CB5E-4912-A422-3F20986AD38E}.Release|x64.Build.0 = Release|x64
 		{91FD4833-CB5E-4912-A422-3F20986AD38E}.Release|x86.ActiveCfg = Release|Win32
 		{91FD4833-CB5E-4912-A422-3F20986AD38E}.Release|x86.Build.0 = Release|Win32
+		{6B204BE6-3C0A-4B50-B8E8-B73A105DE68C}.Debug|x64.ActiveCfg = Debug|x64
+		{6B204BE6-3C0A-4B50-B8E8-B73A105DE68C}.Debug|x64.Build.0 = Debug|x64
+		{6B204BE6-3C0A-4B50-B8E8-B73A105DE68C}.Debug|x86.ActiveCfg = Debug|Win32
+		{6B204BE6-3C0A-4B50-B8E8-B73A105DE68C}.Debug|x86.Build.0 = Debug|Win32
+		{6B204BE6-3C0A-4B50-B8E8-B73A105DE68C}.Release|x64.ActiveCfg = Release|x64
+		{6B204BE6-3C0A-4B50-B8E8-B73A105DE68C}.Release|x64.Build.0 = Release|x64
+		{6B204BE6-3C0A-4B50-B8E8-B73A105DE68C}.Release|x86.ActiveCfg = Release|Win32
+		{6B204BE6-3C0A-4B50-B8E8-B73A105DE68C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
