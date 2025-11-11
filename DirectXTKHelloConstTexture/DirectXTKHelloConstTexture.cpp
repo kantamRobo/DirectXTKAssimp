@@ -18,25 +18,7 @@ DirectXTKHelloConstTexture::DirectXTKHelloConstTexture(DX::DeviceResources* DR,U
 
 }
 
-// Update frame-based values.
-void DirectXTKHelloConstTexture::OnUpdate(DX::DeviceResources* DR)
-{
-    const float translationSpeed = 0.005f;
-    const float offsetBounds = 1.25f;
 
-
-    sceneCB.offset.x += translationSpeed;
-
-    if (sceneCB.offset.x > offsetBounds)
-    {
-        sceneCB.offset.x = -offsetBounds;
-    }
-    m_constantBufferData.SetData(DR->GetD3DDeviceContext(), sceneCB);
-    auto buffer = m_constantBufferData.GetBuffer();
-    DR->GetD3DDeviceContext()->PSSetConstantBuffers(0, 1, &buffer);
-    DR->GetD3DDeviceContext()->VSSetConstantBuffers(0, 1, &buffer); // ← これを追加
-
-}
 
 
 
@@ -47,7 +29,7 @@ void DirectXTKHelloConstTexture::Draw( DX::DeviceResources* DR) {
     }
 
     auto context = DR->GetD3DDeviceContext();
-    OnUpdate(DR);
+ 
     // Input Layout 設定
     context->IASetInputLayout(m_modelInputLayout.Get());
 
@@ -64,9 +46,7 @@ void DirectXTKHelloConstTexture::Draw( DX::DeviceResources* DR) {
     // プリミティブトポロジー設定
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    auto buffer = m_constantBufferData.GetBuffer();
-    context->VSSetConstantBuffers(0, 1, &buffer);
-    context->PSSetConstantBuffers(0, 1, &buffer);
+   
 
     // シェーダー設定
     context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
@@ -74,10 +54,17 @@ void DirectXTKHelloConstTexture::Draw( DX::DeviceResources* DR) {
     const auto SRV = srv.GetAddressOf();
     auto samplerState = state->LinearWrap();
    
+    auto scenebuffer = m_SceneBuffer.GetBuffer();
+    // 行列バッファを b0 に
+    context->VSSetConstantBuffers(0, 1, &scenebuffer);
+    context->PSSetConstantBuffers(0, 1, &scenebuffer);
+
+
+
     context->PSSetShaderResources(0, 1,SRV);
 	auto sampler = state->LinearWrap();
 	context->PSSetSamplers(0, 1, &sampler);
-    auto rasterizerState = state->CullClockwise();
+    auto rasterizerState = state->CullCounterClockwise();
     
     context->RSSetState(rasterizerState);
 
@@ -163,12 +150,14 @@ HRESULT DirectXTKHelloConstTexture::CreateBuffers(DX::DeviceResources* DR, int w
         {DirectX::XMFLOAT3 {  0.0f,  0.5f, 0.0f }, DirectX::XMFLOAT4 { 0.0f, 0.0f, 1.0f, 1.0f },  DirectX::XMFLOAT2{ 0.5f, 0.0f }  }  // 青
     };
 
-    indices = { 0, 1, 2 };
+    // indices ={ 0, 1, 2 }; //CW
+    indices = { 0, 2, 1 };//CCW
+
 
 
 
     auto device = DR->GetD3DDevice();
-
+    auto context = DR->GetD3DDeviceContext();
   
 
     
@@ -192,15 +181,33 @@ HRESULT DirectXTKHelloConstTexture::CreateBuffers(DX::DeviceResources* DR, int w
     ;
 
    
+    // Update Constant Buffer  // Set up Matrices
+    DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+    DirectX::XMVECTOR eye = DirectX::XMVectorSet(2.0f, 2.0f, -10.0f, 0.0f);
+    DirectX::XMVECTOR focus = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+    DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixLookAtLH(eye, focus, up);
 
-    // Create Constant Buffer
-    m_constantBufferData.Create(device);
+    float fov = DirectX::XMConvertToRadians(45.0f);
+    float aspect = static_cast<float>(width) / static_cast<float>(height);
+    float nearZ = 0.1f;
+    float farZ = 100.0f;
+    DirectX::XMMATRIX projMatrix = DirectX::XMMatrixPerspectiveFovLH(fov, aspect, nearZ, farZ);
+
+    // Update Constant Buffer
+    SceneCB cb = {};
+    XMStoreFloat4x4(&cb.world, XMMatrixTranspose(worldMatrix));
+    XMStoreFloat4x4(&cb.view, XMMatrixTranspose(viewMatrix));
+    XMStoreFloat4x4(&cb.projection, XMMatrixTranspose(projMatrix));
+    m_SceneBuffer.Create(device);
+    m_SceneBuffer.SetData(context, cb);
+   
 
 
 
 
 
-    m_constantBufferData.SetData(DR->GetD3DDeviceContext(), sceneCB);
+   
     return S_OK;
 }
 

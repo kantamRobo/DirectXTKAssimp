@@ -11,10 +11,10 @@
 #include <VertexTypes.h>
 
 
-struct SceneConstantBuffer
-{
-    DirectX::XMFLOAT4 offset = { 0,0,0,1 };
-    float padding[60]; // Padding so the constant buffer is 256-byte aligned.
+struct SceneCB {
+    DirectX::XMFLOAT4X4 world;
+    DirectX::XMFLOAT4X4 view;
+    DirectX::XMFLOAT4X4 projection;
 };
 
 class DirectXTKHelloConstTexture
@@ -23,7 +23,7 @@ public:
     DirectXTKHelloConstTexture() {};
     DirectXTKHelloConstTexture(DX::DeviceResources* DR, UINT width, UINT height, std::wstring name);
 
-    void OnUpdate(DX::DeviceResources* DR);
+   
 
     void Draw( DX::DeviceResources* DR);
 
@@ -45,10 +45,9 @@ private:
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
     Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_modelInputLayout = nullptr;// 入力レイアウト
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
- 
-  
-    SceneConstantBuffer sceneCB;
-    DirectX::ConstantBuffer<SceneConstantBuffer>m_constantBufferData;
+
+    SceneCB sceneCB;
+    DirectX::ConstantBuffer<SceneCB> m_SceneBuffer;
 
 };
 
