@@ -155,53 +155,6 @@ void DirectXTKHelloConstSceneRendering::OnUpdate(DX::DeviceResources* DR)
 
 
 
-void DirectXTKHelloConstSceneRendering::Draw(const DX::DeviceResources* DR) {
-    if (vertices.empty() || indices.empty()) {
-        OutputDebugStringA("Vertex or index buffer is empty.\n");
-        return;
-    }
-
-    auto context = DR->GetD3DDeviceContext();
-
-    // Input Layout 設定
-    context->IASetInputLayout(m_modelInputLayout.Get());
-
-    // インデックスバッファの設定
-    auto indexBuffer = static_cast<ID3D11Buffer*>(m_indexBuffer.Get());
-    // Draw() の中
-    context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-    // 頂点バッファの設定
-    UINT stride = sizeof(DirectX::VertexPositionColor);
-    UINT offset = 0;
-    auto vertexBuffer = static_cast<ID3D11Buffer*>(m_vertexBuffer.Get());
-    context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-    // プリミティブトポロジー設定
-    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    auto constantbuffer = m_constantBufferData.GetBuffer();
-    auto scenebuffer = m_SceneBuffer.GetBuffer();
-    // 行列バッファを b0 に
-    context->VSSetConstantBuffers(0, 1, &scenebuffer);
-    context->PSSetConstantBuffers(0, 1, &scenebuffer);
-
-    // オフセットバッファを b1 に
-    context->VSSetConstantBuffers(1, 1, &constantbuffer);
-    context->PSSetConstantBuffers(1, 1, &constantbuffer);
-
-
-    // シェーダー設定
-    context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
-    context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
-    //context->PSSetSamplers(0, 1, samplerState.GetAddressOf());
-   
-	auto RS = state->CullNone();
-    context->RSSetState(RS);
-
-    //context->PSSetShaderResources(0, 1, m_modelsrv.GetAddressOf());
-    // 描画コール   
-    context->DrawIndexed(static_cast<UINT>(indices.size()), 0, 0);
-}
 
 
 //シェーダー
@@ -279,8 +232,8 @@ HRESULT DirectXTKHelloConstSceneRendering::CreateBuffers(DX::DeviceResources* DR
      { DirectX::XMFLOAT3(0.0f,  0.5f, 0.0f), DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) }  // 青
     };
 
-    indices = { 0, 1, 2 };
-
+	// indices ={ 0, 1, 2 }; //CW
+    indices = { 0, 2, 1 };//CCW
 
 
     auto device = DR->GetD3DDevice();
@@ -294,7 +247,7 @@ HRESULT DirectXTKHelloConstSceneRendering::CreateBuffers(DX::DeviceResources* DR
 
     
 
-    indices = { 0, 1, 2 };
+   
 
 
 
@@ -336,7 +289,7 @@ HRESULT DirectXTKHelloConstSceneRendering::CreateBuffers(DX::DeviceResources* DR
 
     // Update Constant Buffer
     SceneCB cb = {};
-    XMStoreFloat4x4(&cb.world, XMMatrixTranspose(worldMatrix));
+    XMStoreFloat4x4(&cb.world,  XMMatrixTranspose (worldMatrix));
     XMStoreFloat4x4(&cb.view, XMMatrixTranspose(viewMatrix));
     XMStoreFloat4x4(&cb.projection, XMMatrixTranspose(projMatrix));
     m_SceneBuffer.Create(device);
@@ -349,4 +302,51 @@ HRESULT DirectXTKHelloConstSceneRendering::CreateBuffers(DX::DeviceResources* DR
 
     m_constantBufferData.SetData(DR->GetD3DDeviceContext(), sceneCB);
     return S_OK;
+}
+
+
+void DirectXTKHelloConstSceneRendering::Draw(const DX::DeviceResources* DR) {
+    if (vertices.empty() || indices.empty()) {
+        OutputDebugStringA("Vertex or index buffer is empty.\n");
+        return;
+    }
+
+    auto context = DR->GetD3DDeviceContext();
+
+    // Input Layout 設定
+    context->IASetInputLayout(m_modelInputLayout.Get());
+
+    // インデックスバッファの設定
+    auto indexBuffer = static_cast<ID3D11Buffer*>(m_indexBuffer.Get());
+    // Draw() の中
+    context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+    // 頂点バッファの設定
+    UINT stride = sizeof(DirectX::VertexPositionColor);
+    UINT offset = 0;
+    auto vertexBuffer = static_cast<ID3D11Buffer*>(m_vertexBuffer.Get());
+    context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+    // プリミティブトポロジー設定
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    auto constantbuffer = m_constantBufferData.GetBuffer();
+    auto scenebuffer = m_SceneBuffer.GetBuffer();
+    // 行列バッファを b0 に
+    context->VSSetConstantBuffers(0, 1, &scenebuffer);
+    context->PSSetConstantBuffers(0, 1, &scenebuffer);
+
+
+
+    // シェーダー設定
+    context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
+    context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
+    //context->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+
+    auto RS = state->CullCounterClockwise();
+
+    context->RSSetState(RS);
+
+    //context->PSSetShaderResources(0, 1, m_modelsrv.GetAddressOf());
+    // 描画コール   
+    context->DrawIndexed(static_cast<UINT>(indices.size()), 0, 0);
 }
