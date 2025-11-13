@@ -206,7 +206,8 @@ HRESULT DirectXTKHelloConstTexture::CreateBuffers(DX::DeviceResources* DR, int w
 
 
 
-
+	device->Release();
+	context->Release();
    
     return S_OK;
 }
