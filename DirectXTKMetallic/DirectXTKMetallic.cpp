@@ -171,6 +171,7 @@ void DirectXTKMetallic::InitializeMaterialCB(const DX::DeviceResources* DR) {
     HRESULT hr = DirectX::CreateDDSTextureFromFile(d3dDevice, L"E:\\repos\\DirectXTK12Sphere\\DirectXTK12MetalicReflection\\earth-cubemap.dds",
         nullptr, m_srv.GetAddressOf());
     DX::ThrowIfFailed(hr);
+	metalicCB.Create(d3dDevice);
 
 
    
@@ -262,7 +263,13 @@ void DirectXTKMetallic::Draw(const DX::DeviceResources* DR)
 {
 	
 
-    
+    // --- 1. 定数バッファのデータの準備 ---
+    MetallicCB constants;
+    constants.CameraPos = m_cameraPos;
+    constants.AlbedoColor = DirectX::XMFLOAT3(1.0f, 0.76f, 0.33f); // ゴールド
+    constants.Roughness = 0.2f;
+    constants.F0 = 1.0f;
+
 
 
     if (vertices.empty() || indices.empty()) {
@@ -271,7 +278,7 @@ void DirectXTKMetallic::Draw(const DX::DeviceResources* DR)
     }
 
     auto context = DR->GetD3DDeviceContext();
-
+	metalicCB.SetData(context, constants);
     // Input Layout 設定
     context->IASetInputLayout(m_modelInputLayout.Get());
 
