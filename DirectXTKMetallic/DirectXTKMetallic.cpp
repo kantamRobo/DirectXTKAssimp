@@ -3,6 +3,161 @@
 
 
 
+
+HRESULT DirectXTKMetallic::CreateBuffers(DX::DeviceResources* DR, int width, int height)
+{
+
+    constexpr int slices = 32;  // 経度方向の分割数
+    constexpr int stacks = 32;  // 緯度方向の分割数
+    constexpr float radius = 1.0f;
+
+    vertices.clear();
+    for (int i = 0; i <= stacks; ++i)
+    {
+        float phi = DirectX::XM_PI * i / stacks;  // 0?π
+        float y = cosf(phi);
+        float r = sinf(phi);
+
+        for (int j = 0; j <= slices; ++j)
+        {
+            float theta = DirectX::XM_2PI * j / slices;  // 0?2π
+
+            float x = r * cosf(theta);
+            float z = r * sinf(theta);
+
+            DirectX::VertexPositionNormalTexture vertex = {};
+            vertex.position = { x * radius, y * radius, z * radius };
+            vertex.normal = { x, y, z }; // 法線は球面上の位置ベクトルと一致
+            vertices.push_back(vertex);
+        }
+    }
+
+
+    indices.clear();
+    for (int i = 0; i < stacks; ++i)
+    {
+        for (int j = 0; j < slices; ++j)
+        {
+            int first = i * (slices + 1) + j;
+            int second = first + slices + 1;
+
+            // 1枚目の三角形
+            indices.push_back(static_cast<uint16_t>(first));
+            indices.push_back(static_cast<uint16_t>(second));
+            indices.push_back(static_cast<uint16_t>(first + 1));
+
+            // 2枚目の三角形
+            indices.push_back(static_cast<uint16_t>(second));
+            indices.push_back(static_cast<uint16_t>(second + 1));
+            indices.push_back(static_cast<uint16_t>(first + 1));
+        }
+    }
+
+    // ディレクションライトのデータを作成する
+    DirectionLight directionLig;
+
+    // ライトは右側から当たっている
+    directionLig.ligDirection.x = 1.0f;
+    directionLig.ligDirection.y = -1.0f;
+    directionLig.ligDirection.z = -1.0f;
+
+
+    // ライトのカラーは白
+    directionLig.ligColor.x = 0.5f;
+    directionLig.ligColor.y = 0.5f;
+    directionLig.ligColor.z = 0.5f;
+
+    auto device = DR->GetD3DDevice();
+    float aspect = float(width) / float(height);
+
+    // Vertex Buffer Description
+    auto vertexBufferDesc = CD3D11_BUFFER_DESC(
+        sizeof(DirectX::VertexPositionNormalTexture) * vertices.size(), // Total size
+        D3D11_BIND_VERTEX_BUFFER,                                           // Bind as vertex buffer
+        D3D11_USAGE_DYNAMIC,                                                // Dynamic usage
+        D3D11_CPU_ACCESS_WRITE                                              // Allow CPU write access
+    );
+
+
+    // Initial data for Vertex Buffer
+    D3D11_SUBRESOURCE_DATA vertexData = {};
+    vertexData.pSysMem = vertices.data();
+
+    // Create Vertex Buffer
+    Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBufferTemp;
+    HRESULT hr = device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBufferTemp);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+    // Store as ID3D11Resource
+    m_vertexBuffer = vertexBufferTemp;
+
+    // Index Buffer Description
+    auto indexBufferDesc = CD3D11_BUFFER_DESC(
+        sizeof(UINT) * indices.size(), // Total size
+        D3D11_BIND_INDEX_BUFFER,       // Bind as index buffer
+        D3D11_USAGE_DYNAMIC,           // Dynamic usage
+        D3D11_CPU_ACCESS_WRITE         // Allow CPU write access
+    );
+
+    // Initial data for Index Buffer
+    D3D11_SUBRESOURCE_DATA indexData = {};
+    indexData.pSysMem = indices.data();
+
+    // Create Index Buffer
+    Microsoft::WRL::ComPtr<ID3D11Buffer> indexBufferTemp;
+    hr = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBufferTemp);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+    // Store as ID3D11Resource
+    m_indexBuffer = indexBufferTemp;
+
+    MaterialCB mat{};
+    mat.BaseColor = { 1.0f, 0.85f, 0.70f, 1.0f };
+    mat.Emissive = { 0.0f, 0.0f, 0.0f };
+    mat.Params = { 0.5f, 0.0f, 1.0f, 0.0f }; // Roughness, Metallic, Opacity
+    mat.Params2 = { 0.5f, 0.0f, 0.0f, 0.5f }; // Specular, SpecularTint, Sheen, SheenTint
+    mat.Params3 = { 0.0f, 1.0f, 0.0f, 0.0f }; // Clearcoat, ClearcoatGloss, Subsurface
+
+    m_materialcb.Create(device);
+    // Store as ID3D11Resource
+    m_indexBuffer = indexBufferTemp;
+    // Update Constant Buffer  // Set up Matrices
+    DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+    DirectX::XMVECTOR eye = DirectX::XMVectorSet(2.0f, 2.0f, -10.0f, 0.0f);
+    DirectX::XMVECTOR focus = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+    DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixLookAtLH(eye, focus, up);
+
+    float fov = DirectX::XMConvertToRadians(45.0f);
+    aspect = static_cast<float>(width) / static_cast<float>(height);
+    float nearZ = 0.1f;
+    float farZ = 100.0f;
+    DirectX::XMMATRIX projMatrix = DirectX::XMMatrixPerspectiveFovLH(fov, aspect, nearZ, farZ);
+
+
+    // Update Constant Buffer
+    SceneCB cb = {};
+    XMStoreFloat4x4(&cb.world, XMMatrixTranspose(worldMatrix));
+    XMStoreFloat4x4(&cb.view, XMMatrixTranspose(viewMatrix));
+    XMStoreFloat4x4(&cb.projection, XMMatrixTranspose(projMatrix));
+    m_SceneBuffer.Create(device);
+    m_SceneBuffer.SetData(DR->GetD3DDeviceContext(), cb);
+
+    m_LightBuffer.Create(device);
+    m_LightBuffer.SetData(DR->GetD3DDeviceContext(), directionLig);
+
+    m_materialcb.SetData(DR->GetD3DDeviceContext(), mat);
+
+    return S_OK;
+}
+
+
 void DirectXTKMetallic::InitializeMaterialCB(const DX::DeviceResources* DR) {
   
 	auto d3dDevice = DR->GetD3DDevice();
@@ -32,7 +187,7 @@ HRESULT DirectXTKMetallic::CreateShaders(const DX::DeviceResources* deviceResour
     auto device = deviceResources->GetD3DDevice();
 
     auto context = deviceResources->GetD3DDeviceContext();
-
+	m_states = std::make_unique<DirectX::CommonStates>(device);
     // 頂点シェーダーのコンパイル
     Microsoft::WRL::ComPtr<ID3DBlob> pVSBlob;
     Microsoft::WRL::ComPtr<ID3DBlob> perrrorBlob;
@@ -99,4 +254,66 @@ HRESULT DirectXTKMetallic::CreateShaders(const DX::DeviceResources* deviceResour
 
 
     return hr;
+}
+
+
+
+void DirectXTKMetallic::Draw(const DX::DeviceResources* DR)
+{
+	
+
+    
+
+
+    if (vertices.empty() || indices.empty()) {
+        OutputDebugStringA("Vertex or index buffer is empty.\n");
+        return;
+    }
+
+    auto context = DR->GetD3DDeviceContext();
+
+    // Input Layout 設定
+    context->IASetInputLayout(m_modelInputLayout.Get());
+
+    // インデックスバッファの設定
+    auto indexBuffer = static_cast<ID3D11Buffer*>(m_indexBuffer.Get());
+    // Draw() の中
+    context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+    // 頂点バッファの設定// 修正前: UINT stride = sizeof(DirectX::VertexPositionColor);
+    UINT stride = sizeof(DirectX::VertexPositionNormalTexture);  // ← これが正しい
+    UINT offset = 0;
+    ID3D11Buffer* vbuffer = static_cast<ID3D11Buffer*>(m_vertexBuffer.Get());
+    context->IASetVertexBuffers(0, 1, &vbuffer, &stride, &offset);
+    ;
+    auto vertexBuffer = static_cast<ID3D11Buffer*>(m_vertexBuffer.Get());
+    context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+    // プリミティブトポロジー設定
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    context->PSSetShaderResources(0, 1, m_srv.GetAddressOf());
+    auto buffer = m_SceneBuffer.GetBuffer();
+    context->VSSetConstantBuffers(0, 1, &buffer);
+    context->PSSetConstantBuffers(0, 1, &buffer);
+    auto buffermat = m_materialcb.GetBuffer();
+    context->VSSetConstantBuffers(1, 1, &buffermat);
+    context->PSSetConstantBuffers(1, 1, &buffermat);
+    auto lightbuf = m_LightBuffer.GetBuffer();
+    context->VSSetConstantBuffers(2, 1, &lightbuf);
+    context->PSSetConstantBuffers(2, 1, &lightbuf);
+
+    // シェーダー設定
+    context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
+    context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
+    //context->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+    context->OMSetBlendState(m_states->Opaque(), Colors::Black, 0xFFFFFFFF);
+
+    context->RSSetState(m_states->CullCounterClockwise());
+
+   
+   
+    
+    // 描画コール   
+    context->DrawIndexed(static_cast<UINT>(indices.size()), 0, 0);
+    auto samplerState = m_states->LinearWrap();
+    context->PSSetSamplers(0, 1, &samplerState);
 }

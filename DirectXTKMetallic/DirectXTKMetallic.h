@@ -9,7 +9,8 @@
 #include <d3dcompiler.h>
 #include <VertexTypes.h>
 #include <DDSTextureLoader.h>
-
+#include <CommonStates.h>
+#include <memory>
 struct SceneConstantBuffer
 {
     DirectX::XMFLOAT4 offset = { 0,0,0,1 };
@@ -67,7 +68,7 @@ private:
 
     Microsoft::WRL::ComPtr<ID3D11Resource> m_vertexBuffer;
     Microsoft::WRL::ComPtr<ID3D11Resource> m_indexBuffer;
-
+	std::unique_ptr<DirectX::CommonStates> m_states;
     //シェーダーの作成
     Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShader;
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
