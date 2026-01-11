@@ -1,14 +1,15 @@
 #include "pch.h"
 
 #pragma once
+#include <wrl/client.h>
 #include <DirectXMath.h>
 #include <BufferHelpers.h>
 #include <DeviceResources.h>
 #include <vector>
 #include <d3dcompiler.h>
 #include <VertexTypes.h>
-#include <BufferHelpers.h>
-#include <wrl/client.h>
+#include <DDSTextureLoader.h>
+
 struct SceneConstantBuffer
 {
     DirectX::XMFLOAT4 offset = { 0,0,0,1 };
@@ -78,5 +79,6 @@ private:
     MaterialCB updates{};
     DirectX::ConstantBuffer< MetallicCB> metalicCB;
     DirectX::ConstantBuffer<SceneCB> m_SceneBuffer;
-
+    Microsoft::WRL:: ComPtr<ID3D11ShaderResourceView> m_srv;
+    void InitializeMaterialCB(const DX::DeviceResources* DR);
 };

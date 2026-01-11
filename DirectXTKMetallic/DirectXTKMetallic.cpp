@@ -1,57 +1,102 @@
 #include "pch.h"
 #include "DirectXTKMetallic.h"
-#include <DDSTextureLoader.h>
+
 
 
 void DirectXTKMetallic::InitializeMaterialCB(const DX::DeviceResources* DR) {
+  
+	auto d3dDevice = DR->GetD3DDevice();
+    
     // キューブマップ (.dds) をロード
        // ※TextureCubeとして作成されます
-    DX::ThrowIfFailed(
-        DirectX::CreateDDSTextureFromFileEx(
-            device,
-            resourceUpload,
-            L"E:\\repos\\DirectXTK12Sphere\\DirectXTK12MetalicReflection\\earth-cubemap.dds",
-            0,
-            D3D12_RESOURCE_FLAG_NONE,
-            DirectX::DDS_LOADER_DEFAULT,
-            m_envMapTexture.ReleaseAndGetAddressOf())
-    );
+    
 
 
-    ComPtr<ID3D11ShaderResourceView> srv;
-    HRESULT hr = CreateDDSTextureFromFile(d3dDevice.Get(), L"SEAFLOOR.DDS",
-        nullptr, srv.GetAddressOf());
+  
+    HRESULT hr = DirectX::CreateDDSTextureFromFile(d3dDevice, L"E:\\repos\\DirectXTK12Sphere\\DirectXTK12MetalicReflection\\earth-cubemap.dds",
+        nullptr, m_srv.GetAddressOf());
     DX::ThrowIfFailed(hr);
 
 
-    // SRV (Shader Resource View) をヒープに作成
-    DirectX::CreateShaderResourceView(
-        device,
-        m_envMapTexture.Get(),
-        m_resourceDescriptors->GetFirstCpuHandle(),
-        true // isCubeMap = true (TextureCubeとして扱うために重要)
-    );
-    // ---------------------------------------------------------
-    // ★ここを追加！: サンプラーの中身を作成する
-    // ---------------------------------------------------------
-    D3D12_SAMPLER_DESC samplerDesc = {};
-    samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR; // 線形補間
-    samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP; // 繰り返し
-    samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    samplerDesc.MipLODBias = 0;
-    samplerDesc.MaxAnisotropy = 1;
-    samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-    samplerDesc.BorderColor[0] = 1.0f;
-    samplerDesc.BorderColor[1] = 1.0f;
-    samplerDesc.BorderColor[2] = 1.0f;
-    samplerDesc.BorderColor[3] = 1.0f;
-    samplerDesc.MinLOD = 0.0f;
-    samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-
-    // サンプラーヒープの先頭ハンドルに書き込む
-    device->CreateSampler(&samplerDesc, m_samplerHeap->GetFirstCpuHandle());
+   
+   
 }
 
 
 
+
+
+HRESULT DirectXTKMetallic::CreateShaders(const DX::DeviceResources* deviceResources)
+{
+    //パイプラインステートの作成
+    auto device = deviceResources->GetD3DDevice();
+
+    auto context = deviceResources->GetD3DDeviceContext();
+
+    // 頂点シェーダーのコンパイル
+    Microsoft::WRL::ComPtr<ID3DBlob> pVSBlob;
+    Microsoft::WRL::ComPtr<ID3DBlob> perrrorBlob;
+    auto hr = D3DCompileFromFile(L"VertexShader.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_5_0", 0, 0, pVSBlob.GetAddressOf(), perrrorBlob.GetAddressOf());
+    if (FAILED(hr))
+    {
+        OutputDebugStringA(reinterpret_cast<const char*>(perrrorBlob->GetBufferPointer()));
+        return hr;
+    }
+
+    // 頂点シェーダーの作成
+    hr = device->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, m_vertexShader.GetAddressOf());
+    if (FAILED(hr))
+    {
+        OutputDebugStringA(reinterpret_cast<const char*>(perrrorBlob->GetBufferPointer()));
+        return hr;
+    }
+
+
+    // ピクセルシェーダーのコンパイル
+    Microsoft::WRL::ComPtr<ID3DBlob> pPSBlob;
+    hr = D3DCompileFromFile(L"PixelShader.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_5_0", 0, 0, pPSBlob.GetAddressOf(), nullptr);
+
+    if (FAILED(hr))
+    {
+        OutputDebugStringA(reinterpret_cast<const char*>(perrrorBlob->GetBufferPointer()));
+        return hr;
+    }
+
+    //ピクセルシェーダーの作成
+    hr = device->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, m_pixelShader.GetAddressOf());
+    if (FAILED(hr))
+    {
+        OutputDebugStringA(reinterpret_cast<const char*>(perrrorBlob->GetBufferPointer()));
+        return hr;
+    }
+    D3D11_INPUT_ELEMENT_DESC layout[] =
+    {
+        { "SV_Position", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        {"NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA, 0}
+    };
+
+    UINT numElements = ARRAYSIZE(layout);
+
+    hr = device->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), m_modelInputLayout.GetAddressOf());
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+    if (!m_rasterizerState)
+    {
+        D3D11_RASTERIZER_DESC rasterDesc = {};
+        rasterDesc.FillMode = D3D11_FILL_SOLID;
+        rasterDesc.CullMode = D3D11_CULL_NONE; // ← バックフェイスカリングを一時的にオフに
+        rasterDesc.FrontCounterClockwise = false;
+        rasterDesc.DepthClipEnable = true;
+
+        device->CreateRasterizerState(&rasterDesc, &m_rasterizerState);
+    }
+
+
+
+
+    return hr;
+}
