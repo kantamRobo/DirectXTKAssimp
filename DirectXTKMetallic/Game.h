@@ -6,7 +6,7 @@
 
 #include "DeviceResources.h"
 #include "StepTimer.h"
-
+#include "DirectXTKMetallic.h"
 #include <memory>
 
 
@@ -59,7 +59,7 @@ private:
 
     // Device resources.
     std::unique_ptr<DX::DeviceResources>    m_deviceResources;
-
+	std::unique_ptr<class DirectXTKMetallic>    m_scene;
     // Rendering loop timer.
     DX::StepTimer                           m_timer;
 };

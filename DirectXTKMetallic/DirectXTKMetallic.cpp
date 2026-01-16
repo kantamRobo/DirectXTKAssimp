@@ -6,7 +6,7 @@
 
 HRESULT DirectXTKMetallic::CreateBuffers(DX::DeviceResources* DR, int width, int height)
 {
-
+	InitializeMaterialCB(DR);
     constexpr int slices = 32;  // 経度方向の分割数
     constexpr int stacks = 32;  // 緯度方向の分割数
     constexpr float radius = 1.0f;
@@ -54,18 +54,18 @@ HRESULT DirectXTKMetallic::CreateBuffers(DX::DeviceResources* DR, int width, int
     }
 
     // ディレクションライトのデータを作成する
-    DirectionLight directionLig;
+  //  DirectionLight directionLig;
 
     // ライトは右側から当たっている
-    directionLig.ligDirection.x = 1.0f;
-    directionLig.ligDirection.y = -1.0f;
-    directionLig.ligDirection.z = -1.0f;
+   // directionLig.ligDirection.x = 1.0f;
+   // directionLig.ligDirection.y = -1.0f;
+  //  directionLig.ligDirection.z = -1.0f;
 
 
     // ライトのカラーは白
-    directionLig.ligColor.x = 0.5f;
-    directionLig.ligColor.y = 0.5f;
-    directionLig.ligColor.z = 0.5f;
+    //directionLig.ligColor.x = 0.5f;
+    //directionLig.ligColor.y = 0.5f;
+   // directionLig.ligColor.z = 0.5f;
 
     auto device = DR->GetD3DDevice();
     float aspect = float(width) / float(height);
@@ -121,8 +121,8 @@ HRESULT DirectXTKMetallic::CreateBuffers(DX::DeviceResources* DR, int width, int
     mat.BaseColor = { 1.0f, 0.85f, 0.70f, 1.0f };
     mat.Emissive = { 0.0f, 0.0f, 0.0f };
     mat.Params = { 0.5f, 0.0f, 1.0f, 0.0f }; // Roughness, Metallic, Opacity
-    mat.Params2 = { 0.5f, 0.0f, 0.0f, 0.5f }; // Specular, SpecularTint, Sheen, SheenTint
-    mat.Params3 = { 0.0f, 1.0f, 0.0f, 0.0f }; // Clearcoat, ClearcoatGloss, Subsurface
+  //  mat.Params2 = { 0.5f, 0.0f, 0.0f, 0.5f }; // Specular, SpecularTint, Sheen, SheenTint
+  //  mat.Params3 = { 0.0f, 1.0f, 0.0f, 0.0f }; // Clearcoat, ClearcoatGloss, Subsurface
 
     m_materialcb.Create(device);
     // Store as ID3D11Resource
@@ -143,14 +143,14 @@ HRESULT DirectXTKMetallic::CreateBuffers(DX::DeviceResources* DR, int width, int
 
     // Update Constant Buffer
     SceneCB cb = {};
-    XMStoreFloat4x4(&cb.world, XMMatrixTranspose(worldMatrix));
-    XMStoreFloat4x4(&cb.view, XMMatrixTranspose(viewMatrix));
-    XMStoreFloat4x4(&cb.projection, XMMatrixTranspose(projMatrix));
+    XMStoreFloat4x4(&cb.world, (worldMatrix));
+    XMStoreFloat4x4(&cb.view, (viewMatrix));
+    XMStoreFloat4x4(&cb.projection,(projMatrix));
     m_SceneBuffer.Create(device);
     m_SceneBuffer.SetData(DR->GetD3DDeviceContext(), cb);
 
-    m_LightBuffer.Create(device);
-    m_LightBuffer.SetData(DR->GetD3DDeviceContext(), directionLig);
+    //m_LightBuffer.Create(device);
+   // m_LightBuffer.SetData(DR->GetD3DDeviceContext(), directionLig);
 
     m_materialcb.SetData(DR->GetD3DDeviceContext(), mat);
 
@@ -167,8 +167,7 @@ void DirectXTKMetallic::InitializeMaterialCB(const DX::DeviceResources* DR) {
     
 
 
-  
-    HRESULT hr = DirectX::CreateDDSTextureFromFile(d3dDevice, L"E:\\repos\\DirectXTK12Sphere\\DirectXTK12MetalicReflection\\earth-cubemap.dds",
+    HRESULT hr = DirectX::CreateDDSTextureFromFile(d3dDevice, L"C:\\Users\\hatte\\source\\repos\\DirectXTK12Sphere\\DirectXTK12MetalicReflection\\earth-cubemap.dds",
         nullptr, m_srv.GetAddressOf());
     DX::ThrowIfFailed(hr);
 	metalicCB.Create(d3dDevice);
@@ -227,10 +226,8 @@ HRESULT DirectXTKMetallic::CreateShaders(const DX::DeviceResources* deviceResour
     }
     D3D11_INPUT_ELEMENT_DESC layout[] =
     {
-        { "SV_Position", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        {"NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA, 0}
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
     UINT numElements = ARRAYSIZE(layout);
@@ -262,7 +259,7 @@ HRESULT DirectXTKMetallic::CreateShaders(const DX::DeviceResources* deviceResour
 void DirectXTKMetallic::Draw(const DX::DeviceResources* DR)
 {
 	
-
+	auto m_cameraPos = DirectX::XMFLOAT3(2.0f, 2.0f, -10.0f);
     // --- 1. 定数バッファのデータの準備 ---
     MetallicCB constants;
     constants.CameraPos = m_cameraPos;
@@ -304,15 +301,15 @@ void DirectXTKMetallic::Draw(const DX::DeviceResources* DR)
     auto buffermat = m_materialcb.GetBuffer();
     context->VSSetConstantBuffers(1, 1, &buffermat);
     context->PSSetConstantBuffers(1, 1, &buffermat);
-    auto lightbuf = m_LightBuffer.GetBuffer();
-    context->VSSetConstantBuffers(2, 1, &lightbuf);
-    context->PSSetConstantBuffers(2, 1, &lightbuf);
+   // auto lightbuf = m_LightBuffer.GetBuffer();
+   // context->VSSetConstantBuffers(2, 1, &lightbuf);
+   // context->PSSetConstantBuffers(2, 1, &lightbuf);
 
     // シェーダー設定
     context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
     context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
     //context->PSSetSamplers(0, 1, samplerState.GetAddressOf());
-    context->OMSetBlendState(m_states->Opaque(), Colors::Black, 0xFFFFFFFF);
+   // context->OMSetBlendState(m_states->Opaque(), Colors::Black, 0xFFFFFFFF);
 
     context->RSSetState(m_states->CullCounterClockwise());
 
@@ -324,3 +321,5 @@ void DirectXTKMetallic::Draw(const DX::DeviceResources* DR)
     auto samplerState = m_states->LinearWrap();
     context->PSSetSamplers(0, 1, &samplerState);
 }
+
+

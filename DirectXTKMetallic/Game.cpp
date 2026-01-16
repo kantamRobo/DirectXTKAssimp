@@ -80,7 +80,7 @@ void Game::Render()
     context;
 
     m_deviceResources->PIXEndEvent();
-
+	m_scene->Draw(m_deviceResources.get());
     // Show the new frame.
     m_deviceResources->Present();
 }
@@ -174,7 +174,15 @@ void Game::CreateDeviceDependentResources()
 // Allocate all memory resources that change on a window SizeChanged event.
 void Game::CreateWindowSizeDependentResources()
 {
+    m_scene = std::make_unique<DirectXTKMetallic>();
+
+    // シェーダーを先に初期化（m_statesもここで初期化される）
+    m_scene->CreateShaders(m_deviceResources.get());
+
     // TODO: Initialize windows-size dependent objects here.
+	m_scene->CreateBuffers(m_deviceResources.get(),
+        m_deviceResources->GetOutputSize().right,
+		m_deviceResources->GetOutputSize().bottom);
 }
 
 void Game::OnDeviceLost()

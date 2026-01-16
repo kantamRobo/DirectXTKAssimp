@@ -11,6 +11,7 @@
 #include <DDSTextureLoader.h>
 #include <CommonStates.h>
 #include <memory>
+
 struct SceneConstantBuffer
 {
     DirectX::XMFLOAT4 offset = { 0,0,0,1 };
@@ -61,6 +62,8 @@ public:
 
     HRESULT CreateBuffers(DX::DeviceResources* DR, int width, int height);
 
+    void InitializeMaterialCB(const DX::DeviceResources* DR);
+
     std::vector<DirectX::VertexPositionNormalTexture> vertices;
     std::vector<UINT> indices;
 private:
@@ -68,18 +71,22 @@ private:
 
     Microsoft::WRL::ComPtr<ID3D11Resource> m_vertexBuffer;
     Microsoft::WRL::ComPtr<ID3D11Resource> m_indexBuffer;
-	std::unique_ptr<DirectX::CommonStates> m_states;
-    //シェーダーの作成
+	//シェーダーの作成
     Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShader;
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
     Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_modelInputLayout = nullptr;// 入力レイアウト
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerState;
-    void OnUpdate();
+   
     SceneCB sceneCB;
     DirectX::ConstantBuffer<MaterialCB> m_materialcb;
     MaterialCB updates{};
     DirectX::ConstantBuffer< MetallicCB> metalicCB;
     DirectX::ConstantBuffer<SceneCB> m_SceneBuffer;
-    Microsoft::WRL:: ComPtr<ID3D11ShaderResourceView> m_srv;
-    void InitializeMaterialCB(const DX::DeviceResources* DR);
-};
+    Microsoft::WRL:: ComPtr<ID3D11ShaderResourceView> m_srv=nullptr;
+    
+
+
+    std::unique_ptr<DirectX::CommonStates> m_states = nullptr;
+
+
+}; 
