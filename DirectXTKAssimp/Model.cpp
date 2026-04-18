@@ -208,7 +208,7 @@ HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResourc
     DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixLookAtLH(eye, focus, up);
 
     float    fov = DirectX::XMConvertToRadians(45.0f);
-    float    aspect = height / width;
+    float    aspect = static_cast<float>(width) / static_cast<float>(height);
     float    nearZ = 0.1f;
     float    farZ = 100.0f;
     DirectX::XMMATRIX projMatrix = DirectX::XMMatrixPerspectiveFovLH(fov, aspect, nearZ, farZ);
@@ -278,6 +278,18 @@ void education::Model::Draw(const DX::DeviceResources* DR) {
 
     context->DrawIndexedInstanced(static_cast<UINT>(indices.size()), 1, 0, 0, 0);
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

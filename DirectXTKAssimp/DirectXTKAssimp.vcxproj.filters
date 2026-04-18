@@ -19,6 +19,8 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="Model.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="ConstantBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -28,6 +30,7 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="Camera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

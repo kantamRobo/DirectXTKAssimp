@@ -168,7 +168,7 @@ void Game::CreateDeviceDependentResources()
     auto device = m_deviceResources->GetD3DDevice();
 
     // TODO: Initialize device dependent objects here (independent of window size).
-	model = std::make_unique<education::Model>(m_deviceResources.get(), "..\\DirectXTKAssimp\\–³‘è.obj",m_height,m_width);
+    model = std::make_unique<education::Model>(m_deviceResources.get(), "C:\\Users\\User\\source\\repos\\DirectXTKAssimp\\–³‘è.obj", m_width, m_height);
     device;
 
 
