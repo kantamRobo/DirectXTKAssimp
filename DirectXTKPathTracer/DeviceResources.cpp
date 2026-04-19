@@ -625,7 +625,7 @@ void DeviceResources::UpdateColorSpace()
         // DXGI output associated with the app at this point in time
         // (using window/display intersection).
 
-        // Get the retangle bounds of the app window.
+        // Get the rectangle bounds of the app window.
         RECT windowBounds;
         if (!GetWindowRect(m_window, &windowBounds))
             throw std::system_error(std::error_code(static_cast<int>(GetLastError()), std::system_category()), "GetWindowRect");
