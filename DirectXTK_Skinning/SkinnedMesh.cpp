@@ -1,18 +1,25 @@
 #include "pch.h"
 #include "SkinnedMesh.h"
 #include <d3dcompiler.h>
+#include <algorithm>
 
 // 頂点バッファ・インデックスバッファ・定数バッファの作成
 HRESULT SkinnedMesh::CreateBuffers(const DX::DeviceResources* deviceResources, int width, int height)
 {
 	auto device = deviceResources->GetD3DDevice();
-	m_boneMatrixBuffer.Create(deviceResources->GetD3DDevice());
+	// ボーンバッファをデバイス上に作成（64行列分）
+m_boneMatrixBuffer.Create(device);
+	
+
+	// シーンバッファを作成（W,V,P）
+	 sceneConstantBuffer.Create(device);
+	
 
 	// 頂点データ例
 	const VS_INPUT vertices[] = {
-		{ DirectX::XMFLOAT3(0.0f, 0.5f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.5f, 0.0f), DirectX::XMUINT4(0,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) },
-		{ DirectX::XMFLOAT3(0.5f, -0.5f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMUINT4(0,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) },
-		{ DirectX::XMFLOAT3(-0.5f, -0.5f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMUINT4(0,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) },
+		{ DirectX::XMFLOAT3(0.0f, 0.5f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.5f, 0.0f), DirectX::XMUINT4(0,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) }, // 頂点0 -> ボーン0
+		{ DirectX::XMFLOAT3(0.5f, -0.5f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMUINT4(1,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) }, // 頂点1 -> ボーン1
+		{ DirectX::XMFLOAT3(-0.5f, -0.5f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMUINT4(2,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) }, // 頂点2 -> ボーン2
 	};
 	vertexCount = std::size(vertices);
 	vertexStride = sizeof(VS_INPUT);
@@ -33,7 +40,7 @@ HRESULT SkinnedMesh::CreateBuffers(const DX::DeviceResources* deviceResources, i
 	initData.SysMemSlicePitch = 0;
 
 	// 頂点バッファ生成
-	HRESULT hr = device->CreateBuffer(&vbDesc, &initData, m_vertexBuffer.GetAddressOf());
+auto	hr = device->CreateBuffer(&vbDesc, &initData, m_vertexBuffer.GetAddressOf());
 	if (FAILED(hr)) {
 		return hr;
 	}
@@ -60,115 +67,67 @@ HRESULT SkinnedMesh::CreateBuffers(const DX::DeviceResources* deviceResources, i
 		return hr;
 	}
 
-	// シーン用定数バッファの作成
-	sceneConstantBuffer.Create(device);
-
 	return S_OK;
 }
 
-// シェーダーの作成
-HRESULT SkinnedMesh::CreateShaders(const DX::DeviceResources* deviceResources)
+void SkinnedMesh::CreatePipelineStates(const DX::DeviceResources* deviceResources, SkinnedMesh* mesh)
 {
 	auto device = deviceResources->GetD3DDevice();
-	HRESULT hr = S_OK;
-
-	// シェーダーファイルのコンパイル（ファイルから読み込む場合の例）
-	// 実装時に適切なシェーダーファイルパスを指定してください
-
-	// 頂点シェーダーのコンパイル例
-	hr = D3DCompileFromFile(
-		L"SkinnedMeshVertex.hlsl",
-		nullptr,
-		nullptr,
-		"main",
-		"vs_5_0",
-		0,
-		0,
-		m_pVSBlob.GetAddressOf(),
-		nullptr
-	);
-	if (FAILED(hr)) {
-		return hr;
-	}
-
-	// 頂点シェーダーの作成
-	hr = device->CreateVertexShader(
-		m_pVSBlob->GetBufferPointer(),
-		m_pVSBlob->GetBufferSize(),
-		nullptr,
-		m_vertexShader.GetAddressOf()
-	);
-	if (FAILED(hr)) {
-		return hr;
-	}
-
-	// ピクセルシェーダーのコンパイル例
-	hr = D3DCompileFromFile(
-		L"SkinnedMeshPixelShader.hlsl",
-		nullptr,
-		nullptr,
-		"main",
-		"ps_5_0",
-		0,
-		0,
-		m_pPSBlob.GetAddressOf(),
-		nullptr
-	);
-	if (FAILED(hr)) {
-		return hr;
-	}
-
-	// ピクセルシェーダーの作成
-	hr = device->CreatePixelShader(
-		m_pPSBlob->GetBufferPointer(),
-		m_pPSBlob->GetBufferSize(),
-		nullptr,
-		m_pixelShader.GetAddressOf()
-	);
-	if (FAILED(hr)) {
-		return hr;
-	}
-
-	return S_OK;
-}
-
-// パイプラインステートの作成
-HRESULT SkinnedMesh::craetepipelineState(const DX::DeviceResources* deviceResources)
-{
-	auto device = deviceResources->GetD3DDevice();
-	HRESULT hr = S_OK;
-
-	// 入力レイアウトの定義
+	m_commonStates = std::make_unique<DirectX::CommonStates>(deviceResources->GetD3DDevice());
+	// SkinnedMesh::CreateShaders の末尾付近（m_pVSBlob がある状態）
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // texCoord (float2)
-		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32B32A32_UINT,0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // boneIds (uint4)
-		{ "TEXCOORD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT,0,48, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // weights (float4)
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,   0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0,  24, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TEXCOORD", 1, DXGI_FORMAT_R32G32B32A32_UINT,0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TEXCOORD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT,0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0},
 	};
-
-	UINT numElements = ARRAYSIZE(layout);
-
-	// 入力レイアウトの作成
-	if (m_pVSBlob)
-	{
-		hr = device->CreateInputLayout(
-			layout,
-			numElements,
-			m_pVSBlob->GetBufferPointer(),
-			m_pVSBlob->GetBufferSize(),
-			m_inputLayout.GetAddressOf()
-		);
-		if (FAILED(hr)) {
-			return hr;
-		}
-	}
+	auto hr = device->CreateInputLayout(layout, _countof(layout),
+		m_pVSBlob->GetBufferPointer(), m_pVSBlob->GetBufferSize(),
+		m_inputLayout.GetAddressOf());
 	
+}
 
-	// CommonStates の初期化
-	m_commonStates = std::make_unique<DirectX::CommonStates>(device);
+// ボーン行列データを更新して GPU に転送する
+HRESULT SkinnedMesh::UpdateBoneTransforms(const DX::DeviceResources* deviceResources, const std::vector<DirectX::XMFLOAT4X4>& boneTransforms)
+{
+	SkinnedMesh::BoneMatricesCB cb = {};
+	// 最小サイズをコピー（最大64）
+	size_t copyCount = std::min<size_t>(boneTransforms.size(), 64);
+	for (size_t i = 0; i < copyCount; ++i)
+	{
+		// XMFLOAT4X4 は 16 floats
+		const float* src = reinterpret_cast<const float*>(&boneTransforms[i]);
+		std::copy(src, src + 16, std::begin(cb.BoneTransforms[i]));
+	}
+	// 残りは単位行列で埋める（必要なら）
+	for (size_t i = copyCount; i < 64; ++i)
+	{
+		// identity
+		float identity[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+		std::copy(std::begin(identity), std::end(identity), std::begin(cb.BoneTransforms[i]));
+	}
 
+	auto ctx = deviceResources->GetD3DDeviceContext();
+	m_boneMatrixBuffer.SetData(ctx, cb);
+	return S_OK;
+}
+
+// シーン行列 (World, View, Projection) を更新して GPU に転送する
+HRESULT SkinnedMesh::UpdateSceneMatrices(const DX::DeviceResources* deviceResources, const DirectX::XMFLOAT4X4& world, const DirectX::XMFLOAT4X4& view, const DirectX::XMFLOAT4X4& proj)
+{
+	SkinnedMesh::SceneCB cb = {};
+	// 直接コピー
+	const float* w = reinterpret_cast<const float*>(&world);
+	const float* v = reinterpret_cast<const float*>(&view);
+	const float* p = reinterpret_cast<const float*>(&proj);
+	std::copy(w, w + 16, std::begin(cb.World));
+	std::copy(v, v + 16, std::begin(cb.View));
+	std::copy(p, p + 16, std::begin(cb.Projection));
+
+	auto ctx = deviceResources->GetD3DDeviceContext();
+	sceneConstantBuffer.SetData(ctx, cb);
 	return S_OK;
 }
 
@@ -190,16 +149,90 @@ void SkinnedMesh::Draw(const DX::DeviceResources* deviceResources)
 	deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 
 	// ラスタライザーステートのセット
-	deviceContext->RSSetState(m_commonStates->CullNone());
+	deviceContext->RSSetState(m_rasterizerState.Get());
 
-	// ボーン行矩変換用の定数バッファのセット
+	// ボーン行列変換用の定数バッファのセット（slot 0）
 	auto boneaddress = m_boneMatrixBuffer.GetBuffer();
 	deviceContext->VSSetConstantBuffers(0, 1, &boneaddress);
 
-	// シーン定数バッファのセット
+	// シーン定数バッファのセット（slot 1）
 	auto sceneAddress = sceneConstantBuffer.GetBuffer();
 	deviceContext->VSSetConstantBuffers(1, 1, &sceneAddress);
 
 	// インデックスバッファでの描画
 	deviceContext->DrawIndexed(3, 0, 0); // 3個のインデックス、オフセット0
+}
+
+// シェーダーの作成
+HRESULT SkinnedMesh::CreateShaders(const DX::DeviceResources* deviceResources)
+{
+    auto device = deviceResources->GetD3DDevice();
+    HRESULT hr = S_OK;
+
+    Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
+
+    // 頂点シェーダーのコンパイル
+    hr = D3DCompileFromFile(
+        L"SkinnedMeshVertex.hlsl",
+        nullptr,
+        nullptr,
+        "main",
+        "vs_5_0",
+        D3DCOMPILE_ENABLE_STRICTNESS,
+        0,
+        m_pVSBlob.GetAddressOf(),
+        errorBlob.GetAddressOf()
+    );
+    if (FAILED(hr))
+    {
+        if (errorBlob) {
+            OutputDebugStringA(static_cast<const char*>(errorBlob->GetBufferPointer()));
+        }
+        return hr;
+    }
+
+    // 頂点シェーダー作成
+    hr = device->CreateVertexShader(
+        m_pVSBlob->GetBufferPointer(),
+        m_pVSBlob->GetBufferSize(),
+        nullptr,
+        m_vertexShader.GetAddressOf()
+    );
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    // ピクセルシェーダーのコンパイル
+    errorBlob.Reset();
+    hr = D3DCompileFromFile(
+        L"SkinnedMeshPixelShader.hlsl",
+        nullptr,
+        nullptr,
+        "main",
+        "ps_5_0",
+        D3DCOMPILE_ENABLE_STRICTNESS,
+        0,
+        m_pPSBlob.GetAddressOf(),
+        errorBlob.GetAddressOf()
+    );
+    if (FAILED(hr))
+    {
+        if (errorBlob) {
+            OutputDebugStringA(static_cast<const char*>(errorBlob->GetBufferPointer()));
+        }
+        return hr;
+    }
+
+    // ピクセルシェーダー作成
+    hr = device->CreatePixelShader(
+        m_pPSBlob->GetBufferPointer(),
+        m_pPSBlob->GetBufferSize(),
+        nullptr,
+        m_pixelShader.GetAddressOf()
+    );
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    return S_OK;
 }
