@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "SkinnedMesh.h"
+#include <d3dcompiler.h>
 
 // 頂点バッファ・インデックスバッファ・定数バッファの作成
 HRESULT SkinnedMesh::CreateBuffers(const DX::DeviceResources* deviceResources, int width, int height)
@@ -76,10 +77,10 @@ HRESULT SkinnedMesh::CreateShaders(const DX::DeviceResources* deviceResources)
 
 	// 頂点シェーダーのコンパイル例
 	hr = D3DCompileFromFile(
-		L"SkinnedMesh.hlsl",
+		L"SkinnedMeshVertex.hlsl",
 		nullptr,
 		nullptr,
-		"VS_Main",
+		"main",
 		"vs_5_0",
 		0,
 		0,
@@ -103,10 +104,10 @@ HRESULT SkinnedMesh::CreateShaders(const DX::DeviceResources* deviceResources)
 
 	// ピクセルシェーダーのコンパイル例
 	hr = D3DCompileFromFile(
-		L"SkinnedMesh.hlsl",
+		L"SkinnedMeshPixelShader.hlsl",
 		nullptr,
 		nullptr,
-		"PS_Main",
+		"main",
 		"ps_5_0",
 		0,
 		0,
@@ -140,11 +141,11 @@ HRESULT SkinnedMesh::craetepipelineState(const DX::DeviceResources* deviceResour
 	// 入力レイアウトの定義
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "BLENDINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "BLENDWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // texCoord (float2)
+		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32B32A32_UINT,0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // boneIds (uint4)
+		{ "TEXCOORD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT,0,48, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // weights (float4)
 	};
 
 	UINT numElements = ARRAYSIZE(layout);
@@ -163,24 +164,7 @@ HRESULT SkinnedMesh::craetepipelineState(const DX::DeviceResources* deviceResour
 			return hr;
 		}
 	}
-
-	// ラスタライザーステートの作成
-	D3D11_RASTERIZER_DESC rasterizerDesc = {};
-	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
-	rasterizerDesc.CullMode = D3D11_CULL_BACK;
-	rasterizerDesc.FrontCounterClockwise = FALSE;
-	rasterizerDesc.DepthBias = 0;
-	rasterizerDesc.DepthBiasClamp = 0.0f;
-	rasterizerDesc.SlopeScaledDepthBias = 0.0f;
-	rasterizerDesc.DepthClipEnable = TRUE;
-	rasterizerDesc.ScissorEnable = FALSE;
-	rasterizerDesc.MultisampleEnable = FALSE;
-	rasterizerDesc.AntialiasedLineEnable = FALSE;
-
-	hr = device->CreateRasterizerState(&rasterizerDesc, m_rasterizerState.GetAddressOf());
-	if (FAILED(hr)) {
-		return hr;
-	}
+	
 
 	// CommonStates の初期化
 	m_commonStates = std::make_unique<DirectX::CommonStates>(device);
@@ -206,9 +190,9 @@ void SkinnedMesh::Draw(const DX::DeviceResources* deviceResources)
 	deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 
 	// ラスタライザーステートのセット
-	deviceContext->RSSetState(m_rasterizerState.Get());
+	deviceContext->RSSetState(m_commonStates->CullNone());
 
-	// ボーン行列変換用の定数バッファのセット
+	// ボーン行矩変換用の定数バッファのセット
 	auto boneaddress = m_boneMatrixBuffer.GetBuffer();
 	deviceContext->VSSetConstantBuffers(0, 1, &boneaddress);
 

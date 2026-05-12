@@ -6,6 +6,7 @@
 
 #include "DeviceResources.h"
 #include "StepTimer.h"
+#include <SkinnedMesh.h>
 
 
 // A basic game implementation that creates a D3D11 device and
@@ -46,7 +47,7 @@ public:
     void GetDefaultSize( int& width, int& height ) const noexcept;
 
 private:
-
+	std::unique_ptr<SkinnedMesh> m_skinnedMesh;
     void Update(DX::StepTimer const& timer);
     void Render();
 

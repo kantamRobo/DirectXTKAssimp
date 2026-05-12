@@ -219,7 +219,7 @@ HRESULT education::Model::CreateBuffers(const DX::DeviceResources* deviceResourc
         DirectX::CreateStaticBuffer(device,
             vertices.data(),                // const void *ptr
             vertices.size(),     // size_t count
-            sizeof(VertexPositionNormalColorTexture), // size_t stride
+            sizeof(DirectX::VertexPositionNormalColorTexture), // size_t stride
             D3D11_BIND_VERTEX_BUFFER, &vertexBufferTemp)
     );
 

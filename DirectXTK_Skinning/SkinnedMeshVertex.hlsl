@@ -10,8 +10,8 @@ struct VS_INPUT
 struct PS_INPUT
 {
     float4 pos : SV_POSITION;
-    float3 norm : NORMAL;
-    float2 texCoord : TEXCOORD0;
+    float3 norm : TEXCOORD0;
+    float2 texCoord : TEXCOORD1;
 };
 
 cbuffer BoneMatrices
@@ -25,7 +25,7 @@ cbuffer TransformUBO
     float4x4 g_WVP;
 };
 
-PS_INPUT VS(VS_INPUT input)
+PS_INPUT main(VS_INPUT input)
 {
     PS_INPUT output;
     float3 totalPosition = 0.0f;
@@ -43,7 +43,8 @@ PS_INPUT VS(VS_INPUT input)
             continue;
 
         // 位置の変形: g_BoneTransforms が column-major 配列
-        float4 transformedPos = g_BoneTransforms[id] * float4(input.pos, 1.0f);
+               // 修正：mul を使って行ベクトル × 行列 の順に統一
+        float4 transformedPos = mul(float4(input.pos, 1.0f), g_BoneTransforms[id]);
         totalPosition += transformedPos.xyz * weight;
 
         // 法線の変形 (回転成分のみを適用)

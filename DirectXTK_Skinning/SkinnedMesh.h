@@ -10,7 +10,8 @@ class SkinnedMesh
 	// 1. 定数バッファ構造体 (D3D11は16バイト境界に揃える必要がある)
 	struct BoneMatricesCB
 	{
-		float BoneTransforms[64][16]; // float4x4 は 16個のfloat (64バイト)
+		// 64 個の float4x4 -> 64 * 16 * 4 = 4096 bytes
+		float BoneTransforms[64][16];
 	};
 	// 1. 頂点構造体
 	struct VS_INPUT
@@ -34,7 +35,8 @@ public:
 	//描画
 	void Draw(const DX::DeviceResources* deviceResources);
 
-	DirectX::ConstantBuffer<DirectX::XMMATRIX> m_boneMatrixBuffer;
+	// 修正: 単一行列ではなく 64 行列分の定数バッファを使用する
+	DirectX::ConstantBuffer<BoneMatricesCB> m_boneMatrixBuffer;
 	//シーン全体のワールド行列・ビュー行列・プロジェクション行列を格納する定数バッファ
 	DirectX::ConstantBuffer<DirectX::XMMATRIX> sceneConstantBuffer;
 	//動的処理化された頂点バッファ
@@ -47,9 +49,6 @@ public:
 	std::unique_ptr<DirectX::CommonStates> m_commonStates;
 	//入力レイアウト
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
-
-	
-
 
 	//頂点シェーダー
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShader;

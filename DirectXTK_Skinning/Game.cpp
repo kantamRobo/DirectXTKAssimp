@@ -76,8 +76,11 @@ void Game::Render()
     m_deviceResources->PIXBeginEvent(L"Render");
     auto context = m_deviceResources->GetD3DDeviceContext();
 
-    // TODO: Add your rendering code here.
-    context;
+    // 描画呼び出し: SkinnedMesh が初期化されていれば描画する
+    if (m_skinnedMesh)
+    {
+        m_skinnedMesh->Draw(m_deviceResources.get());
+    }
 
     m_deviceResources->PIXEndEvent();
 
@@ -167,7 +170,29 @@ void Game::CreateDeviceDependentResources()
 {
     auto device = m_deviceResources->GetD3DDevice();
 
-    // TODO: Initialize device dependent objects here (independent of window size).
+    // SkinnedMesh の生成と初期化
+    m_skinnedMesh = std::make_unique<SkinnedMesh>();
+
+    // 出力サイズを取得してバッファ作成に渡す
+    auto r = m_deviceResources->GetOutputSize();
+    int w = r.right - r.left;
+    int h = r.bottom - r.top;
+
+    // 順に初期化: バッファ、シェーダー、パイプライン
+    if (FAILED(m_skinnedMesh->CreateBuffers(m_deviceResources.get(), w, h)))
+    {
+        // エラー処理（必要に応じてログや例外）
+    }
+    if (FAILED(m_skinnedMesh->CreateShaders(m_deviceResources.get())))
+    {
+        // エラー処理
+    }
+    if (FAILED(m_skinnedMesh->craetepipelineState(m_deviceResources.get())))
+    {
+        // エラー処理
+    }
+
+    // TODO: Initialize other device dependent objects here (independent of window size).
     device;
 }
 
@@ -175,11 +200,14 @@ void Game::CreateDeviceDependentResources()
 void Game::CreateWindowSizeDependentResources()
 {
     // TODO: Initialize windows-size dependent objects here.
+    // 必要であればここで SkinnedMesh のウィンドウサイズ依存処理を追加
 }
 
 void Game::OnDeviceLost()
 {
     // TODO: Add Direct3D resource cleanup here.
+    // SkinnedMesh のリソースを解放（スマートポインタなので reset）
+    m_skinnedMesh.reset();
 }
 
 void Game::OnDeviceRestored()
