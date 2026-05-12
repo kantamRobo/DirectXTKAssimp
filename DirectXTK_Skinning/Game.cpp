@@ -69,6 +69,9 @@ void Game::Update(DX::StepTimer const& timer)
     float safeAngle = fmodf(s_totalTime, 2.0f * XM_PI);
     if (!std::isfinite(safeAngle)) safeAngle = 0.0f;
 
+    // 追加: 経過時間（ボーンアニメーション用）
+    float elapsedTime = s_totalTime;
+
     // 3) 非ゼロかつ有限な delta（除算や正規化などで使う安全値）
     const float kMinDelta = 1e-6f;
     float safeDelta = max(safeFrame, kMinDelta);
@@ -112,37 +115,34 @@ void Game::Update(DX::StepTimer const& timer)
         std::vector<XMFLOAT4X4> boneTransforms;
         boneTransforms.resize(boneCount);
 
-        // 元の頂点座標（SkinnedMesh と一致させる）
-        std::array<XMFLOAT3,3> orig = {
-            XMFLOAT3(0.0f,  0.5f, 0.0f), // 頂点0
-            XMFLOAT3(0.5f, -0.5f, 0.0f), // 頂点1
-            XMFLOAT3(-0.5f,-0.5f, 0.0f)  // 頂点2
+        // 元の頂点座標（7頂点 + 中央）
+        std::array<XMFLOAT3, 8> orig = {
+            XMFLOAT3(0.0f,   0.6f,  0.0f),   // 0:上
+            XMFLOAT3(0.4f,   0.3f,  0.0f),   // 1:右上
+            XMFLOAT3(0.6f,  -0.2f,  0.0f),   // 2:右
+            XMFLOAT3(0.3f,  -0.5f,  0.0f),   // 3:右下
+            XMFLOAT3(-0.3f, -0.5f,  0.0f),   // 4:左下
+            XMFLOAT3(-0.6f, -0.2f,  0.0f),   // 5:左
+            XMFLOAT3(-0.4f,  0.3f,  0.0f),   // 6:左上
+            XMFLOAT3(0.0f,   0.0f,  0.0f)    // 7:中央
         };
 
-        // 元三角形の重心（centroid）
-        XMFLOAT2 centroid;
-        centroid.x = (orig[0].x + orig[1].x + orig[2].x) / 3.0f;
-        centroid.y = (orig[0].y + orig[1].y + orig[2].y) / 3.0f;
-
-        // 目標：辺の長さ s を底辺の長さに合わせて正三角形を作る（ここでは底辺 = 1.0f）
-        const float s = 1.0f; // 底辺長（元の底辺は 1.0）
-        const float h = std::sqrt(3.0f) * 0.5f * s; // 高さ
-        // 正三角形を重心を基準に配置（重心が原点のとき y = 2h/3 と -h/3）
-        const float topY = centroid.y + (2.0f * h / 3.0f);
-        const float bottomY = centroid.y - (h / 3.0f);
-        const float leftX = centroid.x - (s / 2.0f);
-        const float rightX = centroid.x + (s / 2.0f);
-
-        std::array<XMFLOAT3,3> target = {
-            XMFLOAT3(0.0f,            topY,    0.0f), // 頂点0 -> 上
-            XMFLOAT3(rightX,         bottomY, 0.0f), // 頂点1 -> 右下
-            XMFLOAT3(leftX,          bottomY, 0.0f)  // 頂点2 -> 左下
+        // 目標形状：テキトーな変形（渦巻き的な動き）
+        std::array<XMFLOAT3, 8> target = {
+            XMFLOAT3(0.0f,   0.7f,  0.0f),   // 0:上へ伸長
+            XMFLOAT3(0.5f,   0.5f,  0.0f),   // 1:右上へ移動
+            XMFLOAT3(0.7f,   0.0f,  0.0f),   // 2:右へ伸長
+            XMFLOAT3(0.4f,  -0.6f,  0.0f),   // 3:右下へ
+            XMFLOAT3(-0.4f, -0.6f,  0.0f),   // 4:左下へ
+            XMFLOAT3(-0.7f,  0.0f,  0.0f),   // 5:左へ伸長
+            XMFLOAT3(-0.5f,  0.5f,  0.0f),   // 6:左上へ移動
+            XMFLOAT3(0.1f,  -0.1f,  0.0f)    // 7:中央がずれる
         };
 
-        // ボーン0..2 を各頂点の剛体変換（平行移動 + 回転）でマップ
-        for (size_t i = 0; i < 3; ++i)
+        // ボーン0..7 を各頂点の変換でマップ
+        for (size_t i = 0; i < 8; ++i)
         {
-            // 元頂点位置（モデル空間）
+            // 元頂点位置
             XMFLOAT3 pivot = orig[i];
 
             // 目標への平行移動
@@ -151,25 +151,24 @@ void Game::Update(DX::StepTimer const& timer)
             d.y = target[i].y - orig[i].y;
             d.z = target[i].z - orig[i].z;
 
-            // 回転角（ボーンごとに差をつける例）
-            float angle = safeFrame * (0.8f + 0.2f * static_cast<float>(i)); // ラジアン
+            // 時間応じた回転（各ボーンで異なる速度）
+            float angle = elapsedTime * (0.3f + 0.15f * static_cast<float>(i));
 
-            // 回転軸は Z 軸 (必要に応じて X/Y 軸や任意軸に変更)
+            // ピボット周りの回転 + 移動
             XMMATRIX T_negPivot = XMMatrixTranslation(-pivot.x, -pivot.y, -pivot.z);
             XMMATRIX R = XMMatrixRotationZ(angle);
             XMMATRIX T_pivot = XMMatrixTranslation(pivot.x, pivot.y, pivot.z);
             XMMATRIX T_move = XMMatrixTranslation(d.x, d.y, d.z);
 
-            // 最終変換: まずピボット周りに回転 (T_pivot * R * T_negPivot)、その後目標位置へ平行移動
             XMMATRIX m = T_move * (T_pivot * R * T_negPivot);
 
             XMFLOAT4X4 xf;
-            XMStoreFloat4x4(&xf, XMMatrixTranspose(m)); // 既存コードの転置規約に合わせる
+            XMStoreFloat4x4(&xf, XMMatrixTranspose(m));
             boneTransforms[i] = xf;
         }
 
-        // それ以外のボーンは単位行列
-        for (size_t i = 3; i < boneCount; ++i)
+        // 残りのボーンは単位行列
+        for (size_t i = 8; i < boneCount; ++i)
         {
             XMMATRIX id = XMMatrixIdentity();
             XMFLOAT4X4 xf;

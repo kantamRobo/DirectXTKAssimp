@@ -14,15 +14,17 @@ struct PS_INPUT
     float2 texCoord : TEXCOORD1;
 };
 
-cbuffer BoneMatrices
+cbuffer BoneMatrices : register(b0)
 {
     float4x4 g_BoneTransforms[64];
 };
 
-// View/Projection 行列を定義
-cbuffer TransformUBO
+// 修正: C++側の SceneCB の構造に合わせる
+cbuffer TransformUBO : register(b1)
 {
-    float4x4 g_WVP;
+    float4x4 g_World;
+    float4x4 g_View;
+    float4x4 g_Projection;
 };
 
 PS_INPUT main(VS_INPUT input)
@@ -66,9 +68,13 @@ PS_INPUT main(VS_INPUT input)
         totalPosition = input.pos;
         transformedNormal = input.norm;
     }
-
+    // 修正: 最終的な View/Projection 変換
+    // World -> View -> Projection の順で乗算する
+    float4 worldPos = mul(float4(totalPosition, 1.0f), g_World);
+    float4 viewPos = mul(worldPos, g_View);
+    output.pos = mul(viewPos, g_Projection);
     // 最終的な View/Projection 変換
-    output.pos = mul(float4(totalPosition, 1.0f), g_WVP);
+  
     output.norm = normalize(transformedNormal);
     output.texCoord = input.texCoord;
 

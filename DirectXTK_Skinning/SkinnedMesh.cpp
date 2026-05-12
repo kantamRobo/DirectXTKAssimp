@@ -15,11 +15,16 @@ m_boneMatrixBuffer.Create(device);
 	 sceneConstantBuffer.Create(device);
 	
 
-	// 頂点データ例
+	// 頂点データ例（テキトーな複雑形状）
 	const VS_INPUT vertices[] = {
-		{ DirectX::XMFLOAT3(0.0f, 0.5f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.5f, 0.0f), DirectX::XMUINT4(0,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) }, // 頂点0 -> ボーン0
-		{ DirectX::XMFLOAT3(0.5f, -0.5f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMUINT4(1,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) }, // 頂点1 -> ボーン1
-		{ DirectX::XMFLOAT3(-0.5f, -0.5f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMUINT4(2,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) }, // 頂点2 -> ボーン2
+		{ DirectX::XMFLOAT3(0.0f, 0.6f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.5f, 0.0f), DirectX::XMUINT4(0,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) }, // 頂点0
+		{ DirectX::XMFLOAT3(0.4f, 0.3f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.7f, 0.2f), DirectX::XMUINT4(1,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) }, // 頂点1
+		{ DirectX::XMFLOAT3(0.6f, -0.2f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.8f, 0.5f), DirectX::XMUINT4(2,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) }, // 頂点2
+		{ DirectX::XMFLOAT3(0.3f, -0.5f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.6f, 0.8f), DirectX::XMUINT4(3,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) }, // 頂 vertex3 -> ボーン3
+		{ DirectX::XMFLOAT3(-0.3f, -0.5f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.4f, 0.8f), DirectX::XMUINT4(4,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) }, // 頂 vertex4 -> ボーン4
+		{ DirectX::XMFLOAT3(-0.6f, -0.2f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.2f, 0.5f), DirectX::XMUINT4(5,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) }, // 頂 vertex5 -> ボーン5
+		{ DirectX::XMFLOAT3(-0.4f, 0.3f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.3f, 0.2f), DirectX::XMUINT4(6,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) }, // 頂 vertex6 -> ボーン6
+		{ DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f), DirectX::XMFLOAT2(0.5f, 0.5f), DirectX::XMUINT4(7,0,0,0), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f) }, // 頂 vertex7（中央）
 	};
 	vertexCount = std::size(vertices);
 	vertexStride = sizeof(VS_INPUT);
@@ -46,7 +51,15 @@ auto	hr = device->CreateBuffer(&vbDesc, &initData, m_vertexBuffer.GetAddressOf()
 	}
 
 	// インデックスバッファの作成
-	const UINT indices[] = { 0, 1, 2 };
+	const UINT indices[] = { 
+		0, 1, 7,  // 三角1
+		1, 2, 7,  // 三角2
+		2, 3, 7,  // 三角3
+		3, 4, 7,  // 三角4
+		4, 5, 7,  // 三角5
+		5, 6, 7,  // 三角6
+		6, 0, 7   // 三角7
+	};
 	UINT indexCount = std::size(indices);
 
 	D3D11_BUFFER_DESC ibDesc = {};
