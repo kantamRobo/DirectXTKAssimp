@@ -7,6 +7,7 @@
 #include <DeviceResources.h>
 #include <dxgi1_6.h>
 // ボーン配列の定数バッファ用構造体 (16バイトアライメントに注意)
+const int MAX_JOINTS = 128; // 例: 最大ボーン数を定義
 struct JointConstantBuffer {
     DirectX::XMFLOAT4X4 JointMatrices[MAX_JOINTS]; // 例: MAX_JOINTS = 128 や 256
 };
@@ -31,4 +32,6 @@ class SkinnedModel
     void Render(DX::DeviceResources* deviceResources);
     // ボーン配列の定数バッファ
 };
+
+
 
