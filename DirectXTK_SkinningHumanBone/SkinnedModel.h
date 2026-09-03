@@ -2,36 +2,71 @@
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include <d3dcompiler.h>
-#include <DirectXHelpers.h>
 #include <wrl.h>
 #include <DeviceResources.h>
-#include <dxgi1_6.h>
-// ボーン配列の定数バッファ用構造体 (16バイトアライメントに注意)
-const int MAX_JOINTS = 128; // 例: 最大ボーン数を定義
-struct JointConstantBuffer {
-    DirectX::XMFLOAT4X4 JointMatrices[MAX_JOINTS]; // 例: MAX_JOINTS = 128 や 256
-};
+#include <string>
+#include <vector>
+#include <unordered_map>
 
+// Assimp
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+const int MAX_JOINTS = 128;
+
+struct JointConstantBuffer {
+    DirectX::XMFLOAT4X4 JointMatrices[MAX_JOINTS];
+};
 
 struct SkinnedVertex {
-    DirectX::XMFLOAT3 Position;     // POSITION
-    DirectX::XMFLOAT3 Normal;       // NORMAL
-    DirectX::XMFLOAT2 TexCoord;     // TEXCOORD
-    uint32_t JointIndices[4];       // BLENDINDICES (uint4)
-    DirectX::XMFLOAT4 JointWeights; // BLENDWEIGHT  (float4)
+    DirectX::XMFLOAT3 Position;
+    DirectX::XMFLOAT3 Normal;
+    DirectX::XMFLOAT2 TexCoord;
+    uint32_t JointIndices[4] = { 0, 0, 0, 0 };
+    DirectX::XMFLOAT4 JointWeights = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+    void AddBoneData(uint32_t boneID, float weight) {
+        float* weights = &JointWeights.x;
+        for (int i = 0; i < 4; ++i) {
+            if (weights[i] == 0.0f) {
+                JointIndices[i] = boneID;
+                weights[i] = weight;
+                return;
+            }
+        }
+    }
 };
 
-class SkinnedModel
-{
-	bool CreateShaderResources(DX::DeviceResources* deviceResources);
+struct BoneInfo {
+    uint32_t id;
+    DirectX::XMFLOAT4X4 offsetMatrix; // ボーン空間への逆バインドポーズ行列
+};
 
-	Microsoft::WRL::ComPtr<ID3D11Buffer> pJointCBuffer;
-    Microsoft::WRL::ComPtr<ID3D11Buffer> pCameraCBuffer;
-	Microsoft::WRL::ComPtr<ID3D11VertexShader> pVertexShader;
-    Microsoft::WRL::ComPtr<ID3D11PixelShader> pPixelShader;
+class SkinnedModel {
+public:
+    bool LoadFromFile(DX::DeviceResources* deviceResources, const std::string& filePath);
+    bool CreateShaderResources(DX::DeviceResources* deviceResources);
     void Render(DX::DeviceResources* deviceResources);
-    // ボーン配列の定数バッファ
+
+private:
+    void ProcessMesh(aiMesh* mesh, const aiScene* scene,
+        std::vector<SkinnedVertex>& vertices,
+        std::vector<uint32_t>& indices);
+
+    // DirectX 11 リソース
+    Microsoft::WRL::ComPtr<ID3D11Buffer> pVertexBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> pIndexBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> pJointCBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> pCameraCBuffer;
+    Microsoft::WRL::ComPtr<ID3D11VertexShader> pVertexShader;
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> pPixelShader;
+    Microsoft::WRL::ComPtr<ID3D11InputLayout> pInputLayout;
+
+    uint32_t indexCount = 0;
+    int jointCount = 0;
+
+    // ボーン管理
+    std::unordered_map<std::string, BoneInfo> boneMapping;
+    std::vector<DirectX::XMMATRIX> finalJointMatrices;
 };
-
-
-
