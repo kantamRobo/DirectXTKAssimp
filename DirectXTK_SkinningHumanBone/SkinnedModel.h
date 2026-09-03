@@ -25,6 +25,9 @@ class SkinnedModel
 	bool CreateShaderResources(DX::DeviceResources* deviceResources);
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pJointCBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> pCameraCBuffer;
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> pVertexShader;
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> pPixelShader;
     void Render(DX::DeviceResources* deviceResources);
     // ボーン配列の定数バッファ
 };

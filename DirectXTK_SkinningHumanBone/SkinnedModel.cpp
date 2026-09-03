@@ -6,8 +6,8 @@
 bool SkinnedModel::CreateShaderResources(DX::DeviceResources* deviceResources)
 {
 
-	auto device = deviceResources->GetD3DDevice();
-	auto context = deviceResources->GetD3DDeviceContext();
+    auto device = deviceResources->GetD3DDevice();
+    auto context = deviceResources->GetD3DDeviceContext();
 
     D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
     { "POSITION",     0, DXGI_FORMAT_R32G32B32_FLOAT,    0, offsetof(SkinnedVertex, Position),     D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -19,19 +19,19 @@ bool SkinnedModel::CreateShaderResources(DX::DeviceResources* deviceResources)
     { "BLENDWEIGHT",  0, DXGI_FORMAT_R32G32B32A32_FLOAT,  0, offsetof(SkinnedVertex, JointWeights), D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
 
-    
-   
+
+
 
     D3D11_BUFFER_DESC cbDesc = {};
     cbDesc.ByteWidth = sizeof(JointConstantBuffer);
     cbDesc.Usage = D3D11_USAGE_DYNAMIC;
     cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    auto JOINTBUFFER =device->CreateBuffer(&cbDesc, nullptr, pJointCBuffer.GetAddressOf());
-    if(FAILED(JOINTBUFFER))
+    auto JOINTBUFFER = device->CreateBuffer(&cbDesc, nullptr, pJointCBuffer.GetAddressOf());
+    if (FAILED(JOINTBUFFER))
     {
         return false;
-	}
+    }
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     HRESULT hr = context->Map(pJointCBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
     if (SUCCEEDED(hr)) {
@@ -43,9 +43,9 @@ bool SkinnedModel::CreateShaderResources(DX::DeviceResources* deviceResources)
         }
         context->Unmap(pJointCBuffer.Get(), 0);
 
-    return true;
+        return true;
+    }
 }
-
 
     void SkinnedModel::Render(DX::DeviceResources* deviceResources)
     {
