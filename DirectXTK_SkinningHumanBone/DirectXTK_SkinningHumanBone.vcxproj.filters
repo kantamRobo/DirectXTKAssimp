@@ -45,4 +45,8 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="SkinnedVertexShader.hlsl" />
+    <FxCompile Include="SkinnedPixelShader.hlsl" />
+  </ItemGroup>
 </Project>

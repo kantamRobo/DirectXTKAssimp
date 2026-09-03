@@ -52,7 +52,7 @@ bool SkinnedModel::LoadFromFile(DX::DeviceResources* deviceResources, const std:
 
     D3D11_SUBRESOURCE_DATA vbData = {};
     vbData.pSysMem = vertices.data();
-    HRESULT hr = device->CreateBuffer(&vbDesc, &vbData, pVertexBuffer.GetAddressOf());
+    HRESULT hr = device->CreateBuffer(&vbDesc, &vbData, m_VertexBuffer.GetAddressOf());
     if (FAILED(hr)) return false;
 
     // 2. インデックスバッファの作成
@@ -63,7 +63,7 @@ bool SkinnedModel::LoadFromFile(DX::DeviceResources* deviceResources, const std:
 
     D3D11_SUBRESOURCE_DATA ibData = {};
     ibData.pSysMem = indices.data();
-    hr = device->CreateBuffer(&ibDesc, &ibData, pIndexBuffer.GetAddressOf());
+    hr = device->CreateBuffer(&ibDesc, &ibData, m_IndexBuffer.GetAddressOf());
     if (FAILED(hr)) return false;
 
     return CreateShaderResources(deviceResources);
@@ -144,7 +144,37 @@ bool SkinnedModel::CreateShaderResources(DX::DeviceResources* deviceResources)
 
     auto device = deviceResources->GetD3DDevice();
     auto context = deviceResources->GetD3DDeviceContext();
-
+	//頂点シェーダーのコンパイル
+    /*
+     hr = D3DCompileFromFile(
+        L"SkinnedMeshPixelShader.hlsl",
+        nullptr,
+        nullptr,
+        "main",
+        "ps_5_0",
+        D3DCOMPILE_ENABLE_STRICTNESS,
+        0,
+        m_pPSBlob.GetAddressOf(),
+        errorBlob.GetAddressOf()
+    */
+	auto createVetexShader = D3DCompileFromFile(L"SkinnedVertexShader.hlsl", nullptr, nullptr, "main", "vs_5_0", 0, 0, m_VertexShaderBlob.GetAddressOf(), m_ErrorBlob.GetAddressOf());
+    if(FAILED(createVetexShader))
+    {
+        if (m_ErrorBlob)
+        {
+            OutputDebugStringA((char*)m_ErrorBlob->GetBufferPointer());
+        }
+        return false;
+	}
+    auto createPixelShader = D3DCompileFromFile(L"SkinnedPixelShader.hlsl", nullptr, nullptr, "main", "ps_5_0", 0, 0, m_PixelShaderBlob.GetAddressOf(), m_ErrorBlob.GetAddressOf());
+    if (FAILED(createPixelShader))
+    {
+        if (m_ErrorBlob)
+        {
+            OutputDebugStringA((char*)m_ErrorBlob->GetBufferPointer());
+        }
+        return false;
+    }
     D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
      { "POSITION",     0, DXGI_FORMAT_R32G32B32_FLOAT,    0, offsetof(SkinnedVertex, Position),     D3D11_INPUT_PER_VERTEX_DATA, 0 },
      { "NORMAL",       0, DXGI_FORMAT_R32G32B32_FLOAT,    0, offsetof(SkinnedVertex, Normal),       D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -156,46 +186,34 @@ bool SkinnedModel::CreateShaderResources(DX::DeviceResources* deviceResources)
 
 
 
-    D3D11_BUFFER_DESC cbDesc = {};
-    cbDesc.ByteWidth = sizeof(JointConstantBuffer);
-    cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-    cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    auto JOINTBUFFER = device->CreateBuffer(&cbDesc, nullptr, pJointCBuffer.GetAddressOf());
-    if (FAILED(JOINTBUFFER))
-    {
-        return false;
-    }
-    D3D11_MAPPED_SUBRESOURCE mappedResource;
-    HRESULT hr = context->Map(pJointCBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    if (SUCCEEDED(hr)) {
-        JointConstantBuffer* pData = reinterpret_cast<JointConstantBuffer*>(mappedResource.pData);
-        for (int i = 0; i < jointCount; ++i) {
-            // DirectXMath は行優先(Row-Major)、HLSL のデフォルトは列優先(Column-Major)のため
-            // 必要に応じて転置 (Transpose) を行って格納します
-            DirectX::XMStoreFloat4x4(&pData->JointMatrices[i], DirectX::XMMatrixTranspose(finalJointMatrices[i]));
-        }
-        context->Unmap(pJointCBuffer.Get(), 0);
+	m_JointConstantBuffer = std::make_unique<DirectX::ConstantBuffer<JointConstantBuffer>>(device);
+	m_JointConstantBuffer->Create(device);
+    
+	m_CameraConstantBuffer = std::make_unique<DirectX::ConstantBuffer<DirectX::XMFLOAT4X4>>(device);
+	m_CameraConstantBuffer->Create(device);
 
         return true;
     }
-}
+
 
     void SkinnedModel::Render(DX::DeviceResources* deviceResources)
     {
         auto context = deviceResources->GetD3DDeviceContext();
+		 ID3D11Buffer* cameraBuffer = m_CameraConstantBuffer->GetBuffer();
+		ID3D11Buffer* jointBuffer = m_JointConstantBuffer->GetBuffer();
         // 1. カメラ行列バッファ (View, Projection) をスロット 0 にバインド
-        context->VSSetConstantBuffers(0, 1, pCameraCBuffer.GetAddressOf());
+        context->VSSetConstantBuffers(0, 1, &cameraBuffer);
 
         // 2. ボーン行列バッファ (JointMatrices) をスロット 1 にバインド
-        context->VSSetConstantBuffers(1, 1, pJointCBuffer.GetAddressOf());
+        context->VSSetConstantBuffers(1, 1, &jointBuffer);
 
         // 3. シェーダーのセット
-        context->VSSetShader(pVertexShader.Get(), nullptr, 0);
-        context->PSSetShader(pPixelShader.Get(), nullptr, 0);
-
+        context->VSSetShader(m_VertexShader.Get(), nullptr, 0);
+        context->PSSetShader(m_PixelShader.Get(), nullptr, 0);
         // 4. 描画コマンドの発行
         context->DrawIndexed(indexCount, 0, 0);
 
-
+        //描画指令を送った後は一時リソースを解放
+		cameraBuffer->Release();
+		jointBuffer->Release();
 	}

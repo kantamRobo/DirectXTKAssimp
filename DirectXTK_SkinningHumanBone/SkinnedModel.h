@@ -7,7 +7,9 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-
+#include <CommonStates.h>]
+#include <memory>
+#include <BufferHelpers.h>
 // Assimp
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -55,14 +57,21 @@ private:
         std::vector<uint32_t>& indices);
 
     // DirectX 11 リソース
-    Microsoft::WRL::ComPtr<ID3D11Buffer> pVertexBuffer;
-    Microsoft::WRL::ComPtr<ID3D11Buffer> pIndexBuffer;
-    Microsoft::WRL::ComPtr<ID3D11Buffer> pJointCBuffer;
-    Microsoft::WRL::ComPtr<ID3D11Buffer> pCameraCBuffer;
-    Microsoft::WRL::ComPtr<ID3D11VertexShader> pVertexShader;
-    Microsoft::WRL::ComPtr<ID3D11PixelShader> pPixelShader;
-    Microsoft::WRL::ComPtr<ID3D11InputLayout> pInputLayout;
-
+    Microsoft::WRL::ComPtr<ID3D11Buffer> m_VertexBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> m_IndexBuffer;
+   
+    //定数バッファはヘルパーを使用
+	std::unique_ptr<DirectX::ConstantBuffer<JointConstantBuffer>> m_JointConstantBuffer;
+	std::unique_ptr<DirectX::ConstantBuffer<DirectX::XMFLOAT4X4>> m_CameraConstantBuffer;
+    Microsoft::WRL::ComPtr<ID3D11VertexShader> m_VertexShader;
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> m_PixelShader;
+    Microsoft::WRL::ComPtr<ID3D11InputLayout> m_InputLayout;
+    //シェーダーブロブ
+	Microsoft::WRL::ComPtr<ID3DBlob> m_VertexShaderBlob;
+	Microsoft::WRL::ComPtr<ID3DBlob> m_PixelShaderBlob;
+	Microsoft::WRL::ComPtr<ID3DBlob> m_ErrorBlob;
+    //ラスタライズステートのヘルパー
+	std::unique_ptr<DirectX::CommonStates> mCommonStates;
     uint32_t indexCount = 0;
     int jointCount = 0;
 
