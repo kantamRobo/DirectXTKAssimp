@@ -39,6 +39,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTKPolygon", "DirectX
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTK_Skinning", "DirectXTK_Skinning\DirectXTK_Skinning.vcxproj", "{36F35058-09AE-4C92-A22C-2C0D0C29F699}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTK_SkinningHumanBone", "DirectXTK_SkinningHumanBone\DirectXTK_SkinningHumanBone.vcxproj", "{53EDFE60-B3C0-43D5-A2D2-F1A7DD7D0700}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -191,6 +193,14 @@ Global
 		{36F35058-09AE-4C92-A22C-2C0D0C29F699}.Release|x64.Build.0 = Release|x64
 		{36F35058-09AE-4C92-A22C-2C0D0C29F699}.Release|x86.ActiveCfg = Release|Win32
 		{36F35058-09AE-4C92-A22C-2C0D0C29F699}.Release|x86.Build.0 = Release|Win32
+		{53EDFE60-B3C0-43D5-A2D2-F1A7DD7D0700}.Debug|x64.ActiveCfg = Debug|x64
+		{53EDFE60-B3C0-43D5-A2D2-F1A7DD7D0700}.Debug|x64.Build.0 = Debug|x64
+		{53EDFE60-B3C0-43D5-A2D2-F1A7DD7D0700}.Debug|x86.ActiveCfg = Debug|Win32
+		{53EDFE60-B3C0-43D5-A2D2-F1A7DD7D0700}.Debug|x86.Build.0 = Debug|Win32
+		{53EDFE60-B3C0-43D5-A2D2-F1A7DD7D0700}.Release|x64.ActiveCfg = Release|x64
+		{53EDFE60-B3C0-43D5-A2D2-F1A7DD7D0700}.Release|x64.Build.0 = Release|x64
+		{53EDFE60-B3C0-43D5-A2D2-F1A7DD7D0700}.Release|x86.ActiveCfg = Release|Win32
+		{53EDFE60-B3C0-43D5-A2D2-F1A7DD7D0700}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
