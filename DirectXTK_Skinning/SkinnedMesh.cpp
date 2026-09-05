@@ -81,6 +81,41 @@ auto	hr = device->CreateBuffer(&vbDesc, &initData, m_vertexBuffer.GetAddressOf()
 	if (FAILED(hr)) {
 		return hr;
 	}
+	// 頂点シェーダーの作成
+	hr = device->CreateVertexShader(
+		m_vertexShaderBlob->GetBufferPointer(),
+		m_vertexShaderBlob->GetBufferSize(),
+		nullptr,
+		m_vertexShader.GetAddressOf()
+	);
+	if (FAILED(hr)) return hr;
+
+	// ピクセルシェーダーの作成
+	hr = device->CreatePixelShader(
+		m_pixelShaderBlob->GetBufferPointer(),
+		m_pixelShaderBlob->GetBufferSize(),
+		nullptr,
+		m_pixelShader.GetAddressOf()
+	);
+	if (FAILED(hr)) return hr;
+
+	// 入力レイアウトの作成（CreatePipelineStates()で既に作成されている場合は不要）
+	D3D11_INPUT_ELEMENT_DESC layout[] =
+	{
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,   0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0,  24, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TEXCOORD", 1, DXGI_FORMAT_R32G32B32A32_UINT,0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TEXCOORD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT,0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	};
+	hr = device->CreateInputLayout(
+		layout,
+		_countof(layout),
+		m_vertexShaderBlob->GetBufferPointer(),
+		m_vertexShaderBlob->GetBufferSize(),
+		m_inputLayout.GetAddressOf()
+	);
+	if (FAILED(hr)) return hr;
 
 	return S_OK;
 }
@@ -99,7 +134,7 @@ void SkinnedMesh::CreatePipelineStates(const DX::DeviceResources* deviceResource
 		{"TEXCOORD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT,0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0},
 	};
 	auto hr = device->CreateInputLayout(layout, _countof(layout),
-		m_pVSBlob->GetBufferPointer(), m_pVSBlob->GetBufferSize(),
+		m_vertexShaderBlob->GetBufferPointer(), m_vertexShaderBlob->GetBufferSize(),
 		m_inputLayout.GetAddressOf());
 	
 }
@@ -197,7 +232,7 @@ HRESULT SkinnedMesh::CreateShaders(const DX::DeviceResources* deviceResources)
         "vs_5_0",
         D3DCOMPILE_ENABLE_STRICTNESS,
         0,
-        m_pVSBlob.GetAddressOf(),
+        m_vertexShaderBlob.GetAddressOf(),
         errorBlob.GetAddressOf()
     );
     if (FAILED(hr))
@@ -210,8 +245,8 @@ HRESULT SkinnedMesh::CreateShaders(const DX::DeviceResources* deviceResources)
 
     // 頂点シェーダー作成
     hr = device->CreateVertexShader(
-        m_pVSBlob->GetBufferPointer(),
-        m_pVSBlob->GetBufferSize(),
+        m_vertexShaderBlob->GetBufferPointer(),
+        m_vertexShaderBlob->GetBufferSize(),
         nullptr,
         m_vertexShader.GetAddressOf()
     );
@@ -229,7 +264,7 @@ HRESULT SkinnedMesh::CreateShaders(const DX::DeviceResources* deviceResources)
         "ps_5_0",
         D3DCOMPILE_ENABLE_STRICTNESS,
         0,
-        m_pPSBlob.GetAddressOf(),
+        m_pixelShaderBlob.GetAddressOf(),
         errorBlob.GetAddressOf()
     );
     if (FAILED(hr))
@@ -242,8 +277,8 @@ HRESULT SkinnedMesh::CreateShaders(const DX::DeviceResources* deviceResources)
 
     // ピクセルシェーダー作成
     hr = device->CreatePixelShader(
-        m_pPSBlob->GetBufferPointer(),
-        m_pPSBlob->GetBufferSize(),
+        m_pixelShaderBlob->GetBufferPointer(),
+        m_pixelShaderBlob->GetBufferSize(),
         nullptr,
         m_pixelShader.GetAddressOf()
     );

@@ -192,7 +192,33 @@ bool SkinnedModel::CreateShaderResources(DX::DeviceResources* deviceResources)
     
 	m_CameraConstantBuffer = std::make_unique<DirectX::ConstantBuffer<DirectX::XMFLOAT4X4>>(device);
 	m_CameraConstantBuffer->Create(device);
+    // 頂点シェーダーの作成
+   auto  hr = device->CreateVertexShader(
+        m_VertexShaderBlob->GetBufferPointer(),
+        m_VertexShaderBlob->GetBufferSize(),
+        nullptr,
+        m_VertexShader.GetAddressOf()
+    );
+    if (FAILED(hr)) return false;
 
+    // ピクセルシェーダーの作成
+    hr = device->CreatePixelShader(
+        m_PixelShaderBlob->GetBufferPointer(),
+        m_PixelShaderBlob->GetBufferSize(),
+        nullptr,
+        m_PixelShader.GetAddressOf()
+    );
+    if (FAILED(hr)) return false;
+
+    // 入力レイアウトの作成
+    hr = device->CreateInputLayout(
+        layoutDesc,
+        ARRAYSIZE(layoutDesc),
+        m_VertexShaderBlob->GetBufferPointer(),
+        m_VertexShaderBlob->GetBufferSize(),
+        m_InputLayout.GetAddressOf()
+    );
+    if (FAILED(hr)) return false;
         return true;
     }
 
@@ -215,16 +241,62 @@ bool SkinnedModel::CreateShaderResources(DX::DeviceResources* deviceResources)
         //トポロジーのセット
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         
-        m_JointConstantBuffer->SetData(context, &finalJointMatrices[0]);
+        // 修正案: 構造体に一度コピーしてから渡す
+        JointConstantBuffer jointData = {};
+        size_t copyCount = std::min(finalJointMatrices.size(), static_cast<size_t>(MAX_JOINTS));
+        for (size_t i = 0; i < copyCount; ++i) {
+            DirectX::XMStoreFloat4x4(&jointData.JointMatrices[i], finalJointMatrices[i]);
+        }
+        m_JointConstantBuffer->SetData(context, jointData);
 		
-		//カメラのMVP行列のセット
-        //モデル行列をカメラがモデルを映すように設定
-		DirectX::XMMATRIX modelMatrix = DirectX::XMMatrixIdentity(); // モデル行列の設定
-		DirectX::XMMATRIX projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(45.0f), 1.0f, 0.1f, 100.0f); // 投影行列の設定
-		DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixIdentity(); // ビュー行列の設定       
-		DirectX::XMLoadFloat4x4((DirectX::XMMatrixTranspose(modelMatrix * viewMatrix * projectionMatrix),&wvpMatrix));
-        m_CameraConstantBuffer->SetData(context, &wvpMatrix);
+        // -------------------------------------------------------------
+// 1. カメラ（WVP）行列の計算と定数バッファへのセット
+// -------------------------------------------------------------
+// モデル行列
+        DirectX::XMMATRIX modelMatrix = DirectX::XMMatrixIdentity();
+
+        // ビュー行列 (原点を見るように少し手前・上へカメラを引く設定例)
+        DirectX::XMVECTOR eyePos = DirectX::XMVectorSet(0.0f, 1.0f, -3.0f, 0.0f);
+        DirectX::XMVECTOR focusPos = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+        DirectX::XMVECTOR upDir = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+       
+		auto viewMatrix = DirectX::XMMatrixLookAtLH(eyePos, focusPos, upDir);
+        // プロジェクション行列
+        float fovAngleY = DirectX::XMConvertToRadians(45.0f);
+        float aspectRatio = 1.0f; // 必要に応じてバックバッファのアスペクト比を指定
+        DirectX::XMMATRIX projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, 0.1f, 100.0f);
+
+      
+
+        // 修正後 (DirectXMath の XMStoreFloat4x4 を使用)
+        auto wvp = DirectX::XMMatrixTranspose(modelMatrix * viewMatrix * projectionMatrix);
+        DirectX::XMStoreFloat4x4(&wvpMatrix, wvp);
+
+        // カメラ定数バッファを更新
+        m_CameraConstantBuffer->SetData(context, this->wvpMatrix);
+
+
+        // -------------------------------------------------------------
+        // 2. ボーン行列のコピーと定数バッファへのセット
+        // -------------------------------------------------------------
+        JointConstantBuffer jointData = {};
+        size_t copyCount = std::min(finalJointMatrices.size(), static_cast<size_t>(MAX_JOINTS));
+
+        for (size_t i = 0; i < copyCount; ++i) {
+            // 修正後 (DirectXMath の XMStoreFloat4x4 を使用)
+          
+			DirectX::XMStoreFloat4x4(&jointData.JointMatrices[i], finalJointMatrices[i]);
+        }
+
+        // ボーン定数バッファを更新
+        m_JointConstantBuffer->SetData(context, jointData);
+
+
         
+       	auto cameraBuffer = m_CameraConstantBuffer->GetBuffer();
+		auto jointBuffer = m_JointConstantBuffer->GetBuffer();
+		context->VSSetConstantBuffers(0, 1, &cameraBuffer);
+		context->VSSetConstantBuffers(1, 1, &jointBuffer);
         // 3. シェーダーのセット
         context->VSSetShader(m_VertexShader.Get(), nullptr, 0);
         context->PSSetShader(m_PixelShader.Get(), nullptr, 0);

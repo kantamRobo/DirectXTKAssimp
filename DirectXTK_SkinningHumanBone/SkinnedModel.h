@@ -70,6 +70,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3DBlob> m_VertexShaderBlob;
 	Microsoft::WRL::ComPtr<ID3DBlob> m_PixelShaderBlob;
 	Microsoft::WRL::ComPtr<ID3DBlob> m_ErrorBlob;
+    DirectX::XMMATRIX wvpMatrix = {};
     //ラスタライズステートのヘルパー
 	std::unique_ptr<DirectX::CommonStates> mCommonStates;
     uint32_t indexCount = 0;

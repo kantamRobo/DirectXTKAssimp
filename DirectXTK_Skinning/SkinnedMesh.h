@@ -70,9 +70,9 @@ public:
 	//ピクセルシェーダー
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
 	//頂点シェーダーブロブ
-	Microsoft::WRL::ComPtr<ID3DBlob> m_pVSBlob;
+	Microsoft::WRL::ComPtr<ID3DBlob> m_vertexShaderBlob;
 	//ピクセルシェーダーブロブ
-	Microsoft::WRL::ComPtr<ID3DBlob> m_pPSBlob;
+	Microsoft::WRL::ComPtr<ID3DBlob>m_pixelShaderBlob;
 
 };
 
