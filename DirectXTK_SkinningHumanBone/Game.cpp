@@ -78,7 +78,7 @@ void Game::Render()
 
     // TODO: Add your rendering code here.
     context;
-
+	m_skinnedMesh->Render(m_deviceResources.get());
     m_deviceResources->PIXEndEvent();
 
     // Show the new frame.
@@ -168,6 +168,8 @@ void Game::CreateDeviceDependentResources()
     auto device = m_deviceResources->GetD3DDevice();
 
     // TODO: Initialize device dependent objects here (independent of window size).
+	m_skinnedMesh = std::make_unique<SkinnedModel>(L"Assets\\Models\\HumanBone.cmo", device);
+	m_skinnedMesh->CreateShaderResources(m_deviceResources.get());
     device;
 }
 

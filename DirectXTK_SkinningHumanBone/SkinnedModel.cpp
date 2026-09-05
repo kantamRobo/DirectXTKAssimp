@@ -241,13 +241,8 @@ bool SkinnedModel::CreateShaderResources(DX::DeviceResources* deviceResources)
         //トポロジーのセット
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         
-        // 修正案: 構造体に一度コピーしてから渡す
-        JointConstantBuffer jointData = {};
-        size_t copyCount = std::min(finalJointMatrices.size(), static_cast<size_t>(MAX_JOINTS));
-        for (size_t i = 0; i < copyCount; ++i) {
-            DirectX::XMStoreFloat4x4(&jointData.JointMatrices[i], finalJointMatrices[i]);
-        }
-        m_JointConstantBuffer.SetData(context, jointData);
+       
+       
 		
         // -------------------------------------------------------------
 // 1. カメラ（WVP）行列の計算と定数バッファへのセット
@@ -285,11 +280,12 @@ bool SkinnedModel::CreateShaderResources(DX::DeviceResources* deviceResources)
         for (size_t i = 0; i < jointcopyCount; ++i) {
             // HLSL（列優先）の乗算規則に合わせて転置してから格納
             DirectX::XMMATRIX transposed = DirectX::XMMatrixTranspose(finalJointMatrices[i]);
-            DirectX::XMStoreFloat4x4(&jointData.JointMatrices[i], transposed);
+            DirectX::XMStoreFloat4x4(&jointcopyData.JointMatrices[i], transposed);
         }
-
+        
+        size_t copyCount = std::min(finalJointMatrices.size(), static_cast<size_t>(MAX_JOINTS));
         // ボーン定数バッファを更新
-        m_JointConstantBuffer.SetData(context, jointData);
+        m_JointConstantBuffer.SetData(context, jointcopyData);
 
 
         

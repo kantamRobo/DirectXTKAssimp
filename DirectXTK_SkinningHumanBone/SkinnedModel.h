@@ -47,6 +47,10 @@ struct BoneInfo {
 
 class SkinnedModel {
 public:
+    SkinnedModel() {
+		LoadFromFile(nullptr, ""); // デフォルトコンストラクタで初期化
+
+    }
     bool LoadFromFile(DX::DeviceResources* deviceResources, const std::string& filePath);
     bool CreateShaderResources(DX::DeviceResources* deviceResources);
     void Render(DX::DeviceResources* deviceResources);
