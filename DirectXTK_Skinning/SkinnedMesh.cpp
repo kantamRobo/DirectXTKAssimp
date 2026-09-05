@@ -13,7 +13,9 @@ m_boneMatrixBuffer.Create(device);
 
 	// シーンバッファを作成（W,V,P）
 	 sceneConstantBuffer.Create(device);
-	
+	 m_commonStates = std::make_unique<DirectX::CommonStates>(device);
+
+
 
 	// 頂点データ例（テキトーな複雑形状）
 	const VS_INPUT vertices[] = {
@@ -162,7 +164,9 @@ void SkinnedMesh::Draw(const DX::DeviceResources* deviceResources)
 	deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 
 	// ラスタライザーステートのセット
-	deviceContext->RSSetState(m_rasterizerState.Get());
+	auto rasterizerState = m_commonStates->CullNone();
+	deviceContext->RSSetState(rasterizerState);
+
 
 	// ボーン行列変換用の定数バッファのセット（slot 0）
 	auto boneaddress = m_boneMatrixBuffer.GetBuffer();

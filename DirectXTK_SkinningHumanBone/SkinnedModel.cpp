@@ -199,21 +199,38 @@ bool SkinnedModel::CreateShaderResources(DX::DeviceResources* deviceResources)
     void SkinnedModel::Render(DX::DeviceResources* deviceResources)
     {
         auto context = deviceResources->GetD3DDeviceContext();
-		 ID3D11Buffer* cameraBuffer = m_CameraConstantBuffer->GetBuffer();
-		ID3D11Buffer* jointBuffer = m_JointConstantBuffer->GetBuffer();
-        // 1. カメラ行列バッファ (View, Projection) をスロット 0 にバインド
-        context->VSSetConstantBuffers(0, 1, &cameraBuffer);
+		
+		auto rasterizerState = mCommonStates->CullCounterClockwise();
+		UINT stride = sizeof(SkinnedVertex);
+		auto offset = 0u;
+        //入力レイアウトセット
+		context->IASetInputLayout(m_InputLayout.Get());
 
-        // 2. ボーン行列バッファ (JointMatrices) をスロット 1 にバインド
-        context->VSSetConstantBuffers(1, 1, &jointBuffer);
 
+		//必要なバッファのセット
+		context->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &stride, &offset);
+		context->IASetIndexBuffer(m_IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+        //トポロジーのセット
+        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        
+        m_JointConstantBuffer->SetData(context, &finalJointMatrices[0]);
+		
+		//カメラのMVP行列のセット
+        //モデル行列をカメラがモデルを映すように設定
+		DirectX::XMMATRIX modelMatrix = DirectX::XMMatrixIdentity(); // モデル行列の設定
+		DirectX::XMMATRIX projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(45.0f), 1.0f, 0.1f, 100.0f); // 投影行列の設定
+		DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixIdentity(); // ビュー行列の設定       
+		DirectX::XMLoadFloat4x4((DirectX::XMMatrixTranspose(modelMatrix * viewMatrix * projectionMatrix),&wvpMatrix));
+        m_CameraConstantBuffer->SetData(context, &wvpMatrix);
+        
         // 3. シェーダーのセット
         context->VSSetShader(m_VertexShader.Get(), nullptr, 0);
         context->PSSetShader(m_PixelShader.Get(), nullptr, 0);
         // 4. 描画コマンドの発行
+        // ラスタライズステートの設定
+
+        context->RSSetState(rasterizerState);
         context->DrawIndexed(indexCount, 0, 0);
 
-        //描画指令を送った後は一時リソースを解放
-		cameraBuffer->Release();
-		jointBuffer->Release();
-	}
+			}

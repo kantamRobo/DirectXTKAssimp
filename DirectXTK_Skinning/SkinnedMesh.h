@@ -60,8 +60,6 @@ public:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_vertexBuffer;
 	//インデックスバッファ
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_indexBuffer;
-	//ラスタライザーステート
-	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerState;
 	//CommonState
 	std::unique_ptr<DirectX::CommonStates> m_commonStates;
 	//入力レイアウト

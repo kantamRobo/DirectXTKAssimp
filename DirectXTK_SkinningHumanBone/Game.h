@@ -6,7 +6,7 @@
 
 #include "DeviceResources.h"
 #include "StepTimer.h"
-
+#include "SkinnedModel.h"
 #include <memory>
 
 
@@ -59,7 +59,7 @@ private:
 
     // Device resources.
     std::unique_ptr<DX::DeviceResources>    m_deviceResources;
-
+	std::unique_ptr<SkinnedModel> m_skinnedMesh;
     // Rendering loop timer.
     DX::StepTimer                           m_timer;
 };

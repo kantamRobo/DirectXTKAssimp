@@ -58,7 +58,7 @@ private:
 
     // Device resources.
     std::unique_ptr<DX::DeviceResources>    m_deviceResources;
-
+	std::unique_ptr<SkinnedMesh> m_skinnedMesh;
     // Rendering loop timer.
     DX::StepTimer                           m_timer;
 };

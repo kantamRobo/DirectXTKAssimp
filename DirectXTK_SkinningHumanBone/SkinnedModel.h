@@ -74,7 +74,8 @@ private:
 	std::unique_ptr<DirectX::CommonStates> mCommonStates;
     uint32_t indexCount = 0;
     int jointCount = 0;
-
+    //カメラ行列
+	DirectX::XMFLOAT4X4 wvpMatrix;
     // ボーン管理
     std::unordered_map<std::string, BoneInfo> boneMapping;
     std::vector<DirectX::XMMATRIX> finalJointMatrices;
