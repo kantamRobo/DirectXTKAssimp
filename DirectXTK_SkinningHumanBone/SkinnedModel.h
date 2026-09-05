@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include <CommonStates.h>]
+#include <CommonStates.h>
 #include <memory>
 #include <BufferHelpers.h>
 // Assimp

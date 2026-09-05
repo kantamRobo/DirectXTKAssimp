@@ -144,7 +144,8 @@ bool SkinnedModel::CreateShaderResources(DX::DeviceResources* deviceResources)
 
     auto device = deviceResources->GetD3DDevice();
     auto context = deviceResources->GetD3DDeviceContext();
-	//頂点シェーダーのコンパイル
+    mCommonStates = std::make_unique<DirectX::CommonStates>(device);
+    //頂点シェーダーのコンパイル
     /*
      hr = D3DCompileFromFile(
         L"SkinnedMeshPixelShader.hlsl",
