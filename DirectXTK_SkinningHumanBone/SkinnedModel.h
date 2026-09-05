@@ -61,8 +61,8 @@ private:
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_IndexBuffer;
    
     //定数バッファはヘルパーを使用
-	std::unique_ptr<DirectX::ConstantBuffer<JointConstantBuffer>> m_JointConstantBuffer;
-	std::unique_ptr<DirectX::ConstantBuffer<DirectX::XMFLOAT4X4>> m_CameraConstantBuffer;
+	DirectX::ConstantBuffer<JointConstantBuffer> m_JointConstantBuffer;
+	DirectX::ConstantBuffer<DirectX::XMFLOAT4X4> m_CameraConstantBuffer;
     Microsoft::WRL::ComPtr<ID3D11VertexShader> m_VertexShader;
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_PixelShader;
     Microsoft::WRL::ComPtr<ID3D11InputLayout> m_InputLayout;
@@ -70,13 +70,12 @@ private:
 	Microsoft::WRL::ComPtr<ID3DBlob> m_VertexShaderBlob;
 	Microsoft::WRL::ComPtr<ID3DBlob> m_PixelShaderBlob;
 	Microsoft::WRL::ComPtr<ID3DBlob> m_ErrorBlob;
-    DirectX::XMMATRIX wvpMatrix = {};
+    DirectX::XMFLOAT4X4 wvpMatrix = {};
     //ラスタライズステートのヘルパー
 	std::unique_ptr<DirectX::CommonStates> mCommonStates;
     uint32_t indexCount = 0;
     int jointCount = 0;
-    //カメラ行列
-	DirectX::XMFLOAT4X4 wvpMatrix;
+   
     // ボーン管理
     std::unordered_map<std::string, BoneInfo> boneMapping;
     std::vector<DirectX::XMMATRIX> finalJointMatrices;

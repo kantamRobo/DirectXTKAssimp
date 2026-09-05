@@ -8,7 +8,7 @@ static DirectX::XMMATRIX ConvertMatrixToDirectX(const aiMatrix4x4& mat)
     return DirectX::XMMATRIX(
         mat.a1, mat.b1, mat.c1, mat.d1,
         mat.a2, mat.b2, mat.c2, mat.d2,
-        mat.a3, mat.c3, mat.c3, mat.d3,
+        mat.a3, mat.b3, mat.c3, mat.d3,
         mat.a4, mat.b4, mat.c4, mat.d4
     );
 }
@@ -187,11 +187,11 @@ bool SkinnedModel::CreateShaderResources(DX::DeviceResources* deviceResources)
 
 
 
-	m_JointConstantBuffer = std::make_unique<DirectX::ConstantBuffer<JointConstantBuffer>>(device);
-	m_JointConstantBuffer->Create(device);
+	
+	m_JointConstantBuffer.Create(device);
     
-	m_CameraConstantBuffer = std::make_unique<DirectX::ConstantBuffer<DirectX::XMFLOAT4X4>>(device);
-	m_CameraConstantBuffer->Create(device);
+	
+	m_CameraConstantBuffer.Create(device);
     // 頂点シェーダーの作成
    auto  hr = device->CreateVertexShader(
         m_VertexShaderBlob->GetBufferPointer(),
@@ -247,7 +247,7 @@ bool SkinnedModel::CreateShaderResources(DX::DeviceResources* deviceResources)
         for (size_t i = 0; i < copyCount; ++i) {
             DirectX::XMStoreFloat4x4(&jointData.JointMatrices[i], finalJointMatrices[i]);
         }
-        m_JointConstantBuffer->SetData(context, jointData);
+        m_JointConstantBuffer.SetData(context, jointData);
 		
         // -------------------------------------------------------------
 // 1. カメラ（WVP）行列の計算と定数バッファへのセット
@@ -273,28 +273,28 @@ bool SkinnedModel::CreateShaderResources(DX::DeviceResources* deviceResources)
         DirectX::XMStoreFloat4x4(&wvpMatrix, wvp);
 
         // カメラ定数バッファを更新
-        m_CameraConstantBuffer->SetData(context, this->wvpMatrix);
+        m_CameraConstantBuffer.SetData(context, wvpMatrix);
 
 
         // -------------------------------------------------------------
         // 2. ボーン行列のコピーと定数バッファへのセット
         // -------------------------------------------------------------
-        JointConstantBuffer jointData = {};
-        size_t copyCount = std::min(finalJointMatrices.size(), static_cast<size_t>(MAX_JOINTS));
+        JointConstantBuffer jointcopyData = {};
+        size_t jointcopyCount = std::min(finalJointMatrices.size(), static_cast<size_t>(MAX_JOINTS));
 
-        for (size_t i = 0; i < copyCount; ++i) {
-            // 修正後 (DirectXMath の XMStoreFloat4x4 を使用)
-          
-			DirectX::XMStoreFloat4x4(&jointData.JointMatrices[i], finalJointMatrices[i]);
+        for (size_t i = 0; i < jointcopyCount; ++i) {
+            // HLSL（列優先）の乗算規則に合わせて転置してから格納
+            DirectX::XMMATRIX transposed = DirectX::XMMatrixTranspose(finalJointMatrices[i]);
+            DirectX::XMStoreFloat4x4(&jointData.JointMatrices[i], transposed);
         }
 
         // ボーン定数バッファを更新
-        m_JointConstantBuffer->SetData(context, jointData);
+        m_JointConstantBuffer.SetData(context, jointData);
 
 
         
-       	auto cameraBuffer = m_CameraConstantBuffer->GetBuffer();
-		auto jointBuffer = m_JointConstantBuffer->GetBuffer();
+       	auto cameraBuffer = m_CameraConstantBuffer.GetBuffer();
+		auto jointBuffer = m_JointConstantBuffer.GetBuffer();
 		context->VSSetConstantBuffers(0, 1, &cameraBuffer);
 		context->VSSetConstantBuffers(1, 1, &jointBuffer);
         // 3. シェーダーのセット
