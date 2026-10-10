@@ -44,12 +44,12 @@ void ComputeShader::CreateBuffer(DX::DeviceResources* DR)
     desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS|D3D11_BIND_SHADER_RESOURCE;
    
     desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-    desc.StructureByteStride = sizeof(RWStructuredBuffer);
+    desc.StructureByteStride = sizeof(rwStructuredBuffer);
     
     D3D11_SUBRESOURCE_DATA initData = {};
     initData.pSysMem = &RWbuffer;
 
-    device->CreateBuffer(&desc, &initData, &buffer);
+    device->CreateBuffer(&desc, &initData, &outputbuffer);
     
 
     //結果を表示する読み取り専用バッファの作成
@@ -73,7 +73,7 @@ void ComputeShader::CreateUAV(ID3D11Device* device)
     uavDesc.Buffer.FirstElement = 0;
     uavDesc.Buffer.NumElements = sizeof(RWbuffer);
 
-    device->CreateUnorderedAccessView(buffer, &uavDesc, &uav);
+    device->CreateUnorderedAccessView(outputbuffer, &uavDesc, &uav);
 
 }
 
@@ -86,7 +86,7 @@ void ComputeShader::Dispatch(DX::DeviceResources* DR)
     context->CSSetShader(g_pFinalPassCS, nullptr, 0);
     context->Dispatch(sizeof(RWbuffer), 1, 1);
 //データ反映
-    context->CopyResource(ReadbackBuffer, buffer);
+    context->CopyResource(ReadbackBuffer, outputbuffer);
 
     D3D11_MAPPED_SUBRESOURCE mapped = {};
     context->Map(ReadbackBuffer, 0, D3D11_MAP_READ, 0, &mapped);
