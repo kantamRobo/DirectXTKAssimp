@@ -78,7 +78,7 @@ void Game::Render()
 
     // TODO: Add your rendering code here.
     context;
-
+	m_computeShader.Dispatch(m_deviceResources.get());
     m_deviceResources->PIXEndEvent();
 
     // Show the new frame.
@@ -169,6 +169,10 @@ void Game::CreateDeviceDependentResources()
 
     // TODO: Initialize device dependent objects here (independent of window size).
     device;
+	m_computeShader.CreateShader(device);
+	m_computeShader.CreateComputeShader(device);
+	m_computeShader.CreateBuffer(m_deviceResources.get());
+    m_computeShader.CreateUAV(device);
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.

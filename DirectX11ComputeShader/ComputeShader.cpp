@@ -17,17 +17,18 @@ void ComputeShader::CreateShader(ID3D11Device* device)
     };
 
     auto entryPoint = "main";
-    ID3DBlob* shaderBlob = nullptr;
+  
     ID3DBlob* errorBlob = nullptr;
     HRESULT hr = D3DCompileFromFile(L"ComputeShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE,
         entryPoint, profile,
-        flags, 0, &shaderBlob, &errorBlob);
+        flags, 0, &pBlobFinalPassCS , &errorBlob);
 }
 
 void ComputeShader::CreateComputeShader(ID3D11Device* pd3dDevice)
 {
   
-    ID3DBlob* pBlobFinalPassCS = nullptr;
+   
+
     pd3dDevice->CreateComputeShader(pBlobFinalPassCS->GetBufferPointer(),
         pBlobFinalPassCS->GetBufferSize(),
         NULL, &g_pFinalPassCS);
@@ -39,10 +40,10 @@ void ComputeShader::CreateBuffer(DX::DeviceResources* DR)
     auto device = DR->GetD3DDevice();
     auto context = DR->GetD3DDeviceContext();
     D3D11_BUFFER_DESC desc = {};
-    desc.ByteWidth = sizeof(RWbuffer);
+    desc.ByteWidth = sizeof(rwStructuredBuffer); // 要素数を明示
     desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS|D3D11_BIND_SHADER_RESOURCE;
-   
+    desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+    desc.CPUAccessFlags = 0; // DEFAULT では 0
     desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
     desc.StructureByteStride = sizeof(rwStructuredBuffer);
     
@@ -53,11 +54,12 @@ void ComputeShader::CreateBuffer(DX::DeviceResources* DR)
     
 
     //結果を表示する読み取り専用バッファの作成
-    D3D11_BUFFER_DESC readDesc = desc;
+    D3D11_BUFFER_DESC readDesc = {};
+    readDesc.ByteWidth = desc.ByteWidth;
     readDesc.Usage = D3D11_USAGE_STAGING;
     readDesc.BindFlags = 0;
     readDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-    readDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    readDesc.MiscFlags = 0;
 
     device->CreateBuffer(&readDesc, nullptr, &ReadbackBuffer);
 
@@ -71,7 +73,7 @@ void ComputeShader::CreateUAV(ID3D11Device* device)
     uavDesc.Format = DXGI_FORMAT_UNKNOWN;
     uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
     uavDesc.Buffer.FirstElement = 0;
-    uavDesc.Buffer.NumElements = sizeof(RWbuffer);
+    uavDesc.Buffer.NumElements = 1;
 
     device->CreateUnorderedAccessView(outputbuffer, &uavDesc, &uav);
 

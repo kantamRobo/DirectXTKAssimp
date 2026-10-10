@@ -14,7 +14,7 @@ public:
 	void CreateShader(ID3D11Device* device);
 	void CreateComputeShader(ID3D11Device* pd3dDevice);
 	ID3D11ComputeShader* g_pFinalPassCS = NULL;
-
+	ID3DBlob* pBlobFinalPassCS = nullptr;
 
 	void CreateBuffer(DX::DeviceResources* DR);
 	void CreateUAV(ID3D11Device* device);

@@ -6,7 +6,7 @@
 
 #include "DeviceResources.h"
 #include "StepTimer.h"
-
+#include "ComputeShader.h"
 
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
@@ -54,6 +54,9 @@ private:
 
     void CreateDeviceDependentResources();
     void CreateWindowSizeDependentResources();
+    
+    // Compute shader.
+    ComputeShader                           m_computeShader;
 
     // Device resources.
     std::unique_ptr<DX::DeviceResources>    m_deviceResources;
