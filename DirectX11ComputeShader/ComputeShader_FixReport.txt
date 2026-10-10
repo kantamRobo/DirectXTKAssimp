@@ -1,0 +1,118 @@
+================================================================================
+DirectX11ComputeShader 動作確認および修正報告書
+================================================================================
+日付: 2026-10-10
+対象プロジェクト: DirectX11ComputeShader
+対象ファイル:
+  - DirectX11ComputeShader/ComputeShader.h
+  - DirectX11ComputeShader/ComputeShader.cpp
+  - DirectX11ComputeShader/Game.cpp
+
+--------------------------------------------------------------------------------
+1. 概要・動作確認結果
+--------------------------------------------------------------------------------
+本プロジェクトの ComputeShader の動作確認を実施したところ、実行時に Direct3D 11
+デバッグレイヤーによる致命的エラー（Break）およびクラッシュが発生し、
+正常に動作していませんでした。
+
+問題箇所を特定・修正した結果、エラーおよび警告が 0 件となり、
+ComputeShader によるバッファのインクリメント処理（毎フレーム value += 1.0f）が
+正常に実行され、ReadbackBuffer から計算結果を取得できることを確認しました。
+
+【動作確認ログ（抜粋）】
+  [DEBUG] Direct3D Adapter (0): VID:10DE, PID:2705 - NVIDIA GeForce RTX 4070 Ti SUPER
+  [DEBUG] [ComputeShader Result] Frame 0: index = 0, value = 1.0
+  [DEBUG] [ComputeShader Result] Frame 1: index = 0, value = 2.0
+  [DEBUG] [ComputeShader Result] Frame 2: index = 0, value = 3.0
+  [DEBUG] [ComputeShader Result] Frame 3: index = 0, value = 4.0
+  [DEBUG] [ComputeShader Result] Frame 4: index = 0, value = 5.0
+  [DEBUG] [ComputeShader Result] Frame 5: index = 0, value = 6.0
+  [DEBUG] [ComputeShader Result] Frame 6: index = 0, value = 7.0
+  [DEBUG] [ComputeShader Result] Frame 7: index = 0, value = 8.0
+  [DEBUG] [ComputeShader Result] Frame 8: index = 0, value = 9.0
+  [DEBUG] [ComputeShader Result] Frame 9: index = 0, value = 10.0
+  [DEBUG] [ComputeShader Result] Frame 60: index = 0, value = 61.0
+  [DEBUG] [ComputeShader Result] Frame 120: index = 0, value = 121.0
+
+--------------------------------------------------------------------------------
+2. 発生していたエラーおよび問題点と原因
+--------------------------------------------------------------------------------
+
+【問題 1】ID3D11DeviceContext::Unmap の呼び出し漏れ（致命的エラー）
+- 症状:
+  毎フレーム Dispatch() が呼ばれる中で、実行開始直後に以下のエラーで強制停止。
+  D3D11 ERROR: ID3D11DeviceContext::CopyResource:
+    Cannot invoke CopyResource while a Subresource of the destination is mapped.
+    Destination subresource (0) is mapped.
+    [ RESOURCE_MANIPULATION ERROR #285: COPYRESOURCE_INVALIDDESTINATIONSTATE ]
+- 原因:
+  ComputeShader::Dispatch() 内で context->Map(ReadbackBuffer, ...) を呼んだ後、
+  //context->Unmap(ReadbackBuffer, 0); とコメントアウトされており、
+  アンマップされないまま次フレームの context->CopyResource() が実行されたため。
+
+【問題 2】Dispatch スレッドグループ数の誤りによるバッファ範囲外アクセス
+- 症状:
+  context->Dispatch(sizeof(RWbuffer), 1, 1); によりスレッドグループ数 8 が指定。
+- 原因:
+  RWbuffer のサイズは 8 バイト（sizeof(rwStructuredBuffer) == 8）。
+  しかし outputbuffer の要素数は 1（NumElements = 1）でした。
+  HLSL 側の [numthreads(1, 1, 1)] と合わせて DTid.x が 0〜7 の 8 スレッドが実行され、
+  DTid.x = 1〜7 がバッファの範囲外（Out of bounds）にアクセスしていました。
+  要素数が 1 の場合は context->Dispatch(1, 1, 1) を指定する必要があります。
+
+【問題 3】シェーダーファイルの相対パス依存とエラーハンドリング不足
+- 症状:
+  作業ディレクトリがプロジェクトルート以外の場合に D3DCompileFromFile が失敗し、
+  直後の CreateComputeShader で NULL ポインタ参照（0xC0000005 アクセス違反）クラッシュが発生。
+- 原因:
+  D3DCompileFromFile(L"ComputeShader.hlsl", ...) と相対パス直書きになっており、
+  カレントディレクトリに HLSL がない場合にコンパイル失敗していました。
+  また、FAILED(hr) や errorBlob のエラーチェック・出力処理がありませんでした。
+
+【問題 4】ディスパッチ後の UAV / CS アンバインド漏れ
+- 症状:
+  ComputeShader 実行後、UAV がパイプラインにバインドされたまま放置されていた。
+- 原因:
+  CSSetUnorderedAccessViews でバインドした UAV を解除していないため、
+  他の描画パス等とのリソース競合（ハザード）の原因となっていました。
+
+【問題 5】生ポインタによるリソース管理とメモリリーク
+- 症状:
+  バッファやシェーダーのポインタが Release() されておらず解放漏れが発生。
+- 原因:
+  ID3D11Buffer* 等を生ポインタで保持しており、デストラクタやデバイスロスト時の解放が
+  行われていませんでした。
+
+【問題 6】メンバ変数の初期化漏れ
+- 症状:
+  rwStructuredBuffer RWbuffer のメンバが初期化されていなかった。
+- 原因:
+  構造体メンバが不定値のままバッファの初期データ（initData.pSysMem）として渡されていました。
+
+--------------------------------------------------------------------------------
+3. 修正箇所と内容
+--------------------------------------------------------------------------------
+
+1. DirectX11ComputeShader/ComputeShader.h
+   - 生ポインタを Microsoft::WRL::ComPtr<ID3D11Buffer>, ComPtr<ID3D11ComputeShader>,
+     ComPtr<ID3D11UnorderedAccessView>, ComPtr<ID3DBlob> に置換し、自動リソース管理。
+   - RWbuffer を { 0, 0.0f } でゼロ初期化。
+   - デバイスロスト時等にリソースを解放する ReleaseResources() メソッドを追加。
+
+2. DirectX11ComputeShader/ComputeShader.cpp
+   - FindShaderPath() ヘルパー関数を追加:
+     カレントディレクトリ、exe と同じ階層、プロジェクトディレクトリ（2階層上）を
+     順次探索し、どの作業ディレクトリから実行しても ComputeShader.hlsl を確実に検出。
+   - CreateShader() にて D3DCompileFromFile の失敗チェック、および errorBlob の
+     エラーログ出力（OutputDebugStringA）を追加。
+   - Dispatch():
+     - context->Dispatch(1, 1, 1) に修正（要素数 1 に適合）。
+     - Dispatch 直後に null UAV をセットしてアンバインド処理を追加。
+     - Map 成功後に計算結果をログ出力（最初の10フレームおよび60フレーム毎）。
+     - Map 後に確実に context->Unmap(ReadbackBuffer.Get(), 0) を呼ぶように修正。
+
+3. DirectX11ComputeShader/Game.cpp
+   - Game::OnDeviceLost() にて m_computeShader.ReleaseResources() を呼び出すよう修正。
+
+================================================================================
+

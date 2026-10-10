@@ -183,7 +183,7 @@ void Game::CreateWindowSizeDependentResources()
 
 void Game::OnDeviceLost()
 {
-    // TODO: Add Direct3D resource cleanup here.
+    m_computeShader.ReleaseResources();
 }
 
 void Game::OnDeviceRestored()
